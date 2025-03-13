@@ -41,12 +41,12 @@ class Category extends Model
     {
         parent::boot();
 
-        static::creating(function ($unit) {
-            $unit->created_by = auth()->check() ? auth()->user()->fullname : 'system';
+        static::creating(function ($item) {
+            $item->created_by = auth()->check() ? auth()->user()->fullname : 'system';
         });
 
-        static::updating(function ($unit) {
-            $unit->updated_by = auth()->check() ? auth()->user()->fullname : 'system';
+        static::updating(function ($item) {
+            $item->updated_by = auth()->check() ? auth()->user()->fullname : 'system';
         });
     }
 }

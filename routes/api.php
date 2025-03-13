@@ -11,7 +11,7 @@ Route::put('refresh-token', [App\Http\Controllers\Auth\AuthController::class, 'r
 // KHUSUS YANG SUDAH LOGIN
 Route::middleware(['auth:api'])->group(function () {
     // Upload photos
-	Route::post('upload/photos', [App\Http\Controllers\UploadPhotosController::class, 'store']);
+    Route::post('upload/photos', [App\Http\Controllers\UploadPhotosController::class, 'store']);
     // Units
     Route::apiResource('units', App\Http\Controllers\UnitController::class);
     // Groups
@@ -20,4 +20,12 @@ Route::middleware(['auth:api'])->group(function () {
     Route::apiResource('categories', App\Http\Controllers\CategoryController::class);
     // Products
     Route::apiResource('products', App\Http\Controllers\ProductController::class);
+    // Stock Movement
+    Route::get('stock-movements', [App\Http\Controllers\StockMovementController::class, 'index']);
+    Route::get('stock-movements/{product}', [App\Http\Controllers\StockMovementController::class, 'show']);
+    // STOK MASUK HEADER
+    Route::put('stock-entries/{stock}/commit', [App\Http\Controllers\StockIn\StockInHeaderController::class, 'committed']);
+    Route::apiResource('stock-entries', App\Http\Controllers\StockIn\StockInHeaderController::class);
+    // STOK MASUK DETAIL
+    Route::apiResource('stock-entries/{stock}/lines', App\Http\Controllers\StockIn\StockInDetailController::class);
 });

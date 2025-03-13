@@ -19,7 +19,9 @@ return new class extends Migration
             $table->unsignedBigInteger('category_id')->nullable();
             $table->unsignedBigInteger('group_id')->nullable();
             $table->unsignedBigInteger('base_unit_id')->nullable();
+            $table->unsignedBigInteger('base_stock');
             $table->string('image')->nullable();
+            $table->string('barcode')->nullable();
             $table->string('type')->default('Bebas');
             $table->string('side_effect')->nullable();
             $table->string('rack_location')->nullable();
@@ -31,7 +33,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->string('created_by');
-            $table->string('update_by')->nullable();
+            $table->string('updated_by')->nullable();
 
             $table->foreign('category_id')->on('categories')->references('id')->onDelete('cascade');
             $table->foreign('group_id')->on('groups')->references('id')->onDelete('cascade');

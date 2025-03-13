@@ -15,9 +15,11 @@ class Product extends Model
         'name',
         'slug',
         'sku',
+        'barcode',
         'category_id',
         'group_id',
         'base_unit_id',
+        'base_stock',
         'image',
         'type',
         'side_effect',
@@ -33,6 +35,7 @@ class Product extends Model
     ];
     protected $casts = [
         'purchase_price' => 'float',
+        'is_need_receipt' => 'boolean',
         'is_active' => 'boolean',
     ];
 
@@ -70,20 +73,19 @@ class Product extends Model
     public function units()
     {
         return $this->belongsToMany(Unit::class, 'product_units', 'product_id', 'unit_id')
-            ->withPivot('conversion_to_base', 'is_base', 'sell_price', 'new_price', 'description')
-            ->withTimestamps();
+            ->withPivot('conversion_to_base', 'is_base', 'sell_price', 'new_price');
     }
 
     protected static function boot()
     {
         parent::boot();
 
-        static::creating(function ($unit) {
-            $unit->created_by = auth()->check() ? auth()->user()->fullname : 'system';
+        static::creating(function ($item) {
+            $item->created_by = auth()->check() ? auth()->user()->fullname : 'system';
         });
 
-        static::updating(function ($unit) {
-            $unit->updated_by = auth()->check() ? auth()->user()->fullname : 'system';
+        static::updating(function ($item) {
+            $item->updated_by = auth()->check() ? auth()->user()->fullname : 'system';
         });
     }
 }

@@ -6,15 +6,20 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Group extends Model
+class StockMovement extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'description',
-        'created_by',
-        'updated_by',
+        'product_id',
+        'movement_type',
+        'qty_in',
+        'qty_out',
+        'remaining',
+        'reference_type',
+        'reference_id',
+        'note',
+        'created_by'
     ];
 
     // search data
@@ -26,6 +31,11 @@ class Group extends Model
                 $query->orWhere($column, 'LIKE', "%$searchKeyword%");
             }
         });
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class)->select('id', 'name', 'slug', 'sku', 'image');
     }
 
     protected static function boot()
