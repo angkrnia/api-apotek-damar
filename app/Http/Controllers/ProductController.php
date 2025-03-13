@@ -8,6 +8,7 @@ use App\Models\StockMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
@@ -145,7 +146,7 @@ class ProductController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:100'],
-            'sku'  => ['required', 'string', 'max:100', 'unique:products,sku'],
+            'sku'  => ['required', 'string', 'max:100', Rule::unique('products')->ignore($product->id)],
             'category_id' => ['nullable', 'exists:categories,id'],
             'group_id' => ['nullable', 'exists:groups,id'],
             'image' => ['nullable', 'string', 'max:255'],
@@ -167,18 +168,29 @@ class ProductController extends Controller
             'units.*.new_price' => ['required', 'numeric'],
         ]);
 
-        $product->name = $request->name;
-        $product->sku = $request->sku;
-        $product->buy_price = $request->buy_price;
-        $product->category_id = $request->category_id;
-        $product->group_id = $request->group_id;
-        $product->image = $request->image;
-        $product->type = $request->type;
-        $product->side_effect = $request->side_effect;
-        $product->description = $request->description;
-        $product->dosage = $request->dosage;
-        $product->indication = $request->indication;
-        $product->base_unit_id = data_get($request, 'units.0.unit_id', null);
+        $fields = [
+            'name',
+            'sku',
+            'category_id',
+            'group_id',
+            'image',
+            'type',
+            'side_effect',
+            'rack_location',
+            'description',
+            'purchase_price',
+            'dosage',
+            'indication',
+            'is_need_receipt',
+            'is_active'
+        ];
+
+        foreach ($fields as $field) {
+            if ($request->has($field)) {
+                $product->$field = $request->$field;
+            }
+        }
+
         $product->save();
 
         // Units
@@ -192,7 +204,7 @@ class ProductController extends Controller
                 'is_base' => $unit['is_base'],
                 'sell_price' => $unit['sell_price'],
                 'new_price' => $unit['new_price'],
-                'description' => $unit['description'],
+                'created_by' => auth()->user()->fullname,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
