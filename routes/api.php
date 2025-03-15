@@ -28,6 +28,11 @@ Route::middleware(['auth:api'])->group(function () {
     Route::apiResource('stock-entries', App\Http\Controllers\StockIn\StockInHeaderController::class);
     // STOK MASUK DETAIL
     Route::apiResource('stock-entries/{stock}/lines', App\Http\Controllers\StockIn\StockInDetailController::class);
+    // STOCK OPNAME HEADER
+	Route::put('opname/{opname}/commit', [App\Http\Controllers\Opname\OpnameHeaderController::class, 'committed']);
+	Route::apiResource('opname', App\Http\Controllers\Opname\OpnameHeaderController::class);
+	// STOCK OPNAME DETAIL
+	Route::apiResource('opname/{opname}/lines', App\Http\Controllers\Opname\OpnameDetailController::class);
     // SELECT LIST HELPER
     Route::get('categories-list', [App\Http\Controllers\HelperController::class, 'categoryList']);
 	Route::get('groups-list', [App\Http\Controllers\HelperController::class, 'groupList']);
