@@ -201,8 +201,21 @@ class ProductController extends Controller
         // Units
         $units = collect($request->units);
 
-        $productUnits = $units->map(function ($unit) use ($product) {
-            return [
+        // Units
+        $units = collect($request->units);
+
+        $incomingUnitIds = $units->pluck('unit_id')->toArray();
+
+        // Ambil unit yang sudah ada di database untuk produk ini
+        $existingUnits = ProductUnits::where('product_id', $product->id)
+            ->pluck('unit_id')
+            ->toArray();
+
+        $unitsToInsert = [];
+        $unitsToUpdate = [];
+
+        foreach ($units as $unit) {
+            $data = [
                 'product_id' => $product->id,
                 'unit_id' => $unit['unit_id'],
                 'conversion_to_base' => $unit['conversion_to_base'],
@@ -211,14 +224,38 @@ class ProductController extends Controller
                 'sell_price' => $unit['sell_price'],
                 'new_price' => $unit['new_price'],
                 'created_by' => auth()->user()->fullname,
-                'created_at' => now(),
                 'updated_at' => now(),
             ];
-        })->toArray();
 
-        ProductUnits::where('product_id', $product->id)->delete();
+            if (in_array($unit['unit_id'], $existingUnits)) {
+                // Jika unit sudah ada, update saja
+                $data['updated_by'] = auth()->user()->fullname;
+                $unitsToUpdate[] = $data;
+            } else {
+                // Jika unit baru, tambahkan ke insert list
+                $data['created_at'] = now();
+                $unitsToInsert[] = $data;
+            }
+        }
 
-        ProductUnits::insert($productUnits);
+        // Insert unit baru
+        if (!empty($unitsToInsert)) {
+            ProductUnits::insert($unitsToInsert);
+        }
+
+        // Update unit yang sudah ada
+        if (!empty($unitsToUpdate)) {
+            foreach ($unitsToUpdate as $updateData) {
+                ProductUnits::where('product_id', $product->id)
+                    ->where('unit_id', $updateData['unit_id'])
+                    ->update($updateData);
+            }
+        }
+
+        // Hapus unit yang tidak ada di request
+        ProductUnits::where('product_id', $product->id)
+            ->whereNotIn('unit_id', $incomingUnitIds)
+            ->delete();
 
         return response()->json([
             'code'      => 200,

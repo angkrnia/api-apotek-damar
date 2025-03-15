@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class ProductUnits extends Model
+class ProductUnits extends Pivot
 {
     use HasFactory;
 
@@ -20,6 +21,10 @@ class ProductUnits extends Model
         'stock',
         'sell_price',
         'new_price',
+    ];
+
+    protected $casts = [
+        'is_base' => 'boolean',
     ];
 
     public function unit()

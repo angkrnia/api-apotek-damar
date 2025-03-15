@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('product_units', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('product_id');
-            $table->unsignedBigInteger('unit_id');
+            $table->unsignedBigInteger('unit_id')->nullable();
             $table->integer('conversion_to_base')->default(1);
             $table->boolean('is_base')->default(true);
             $table->decimal('sell_price', 18, 2);
@@ -25,7 +25,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('product_id')->on('products')->references('id')->onDelete('cascade');
-            $table->foreign('unit_id')->on('units')->references('id')->onDelete('cascade');
+            $table->foreign('unit_id')->on('units')->references('id')->onDelete('set null');
         });
     }
 

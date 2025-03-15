@@ -40,15 +40,15 @@ class HelperController extends Controller
         ]);
     }
 
-    public function doctorMedicines(Request $request)
+    public function medicineList(Request $request)
     {
         $data = Product::query()
-            ->when($request->filled('search'), fn($query) => $query->keywordSearch($request->search))
-            ->when($request->filled('category_id'), fn($query) => $query->where('category_id', $request->category_id))
-            ->when($request->filled('group_id'), fn($query) => $query->where('group_id', $request->group_id))
+            ->when($request->filled('search'), fn($query) => $query->keywordSearch($request->input('search')))
+            ->when($request->filled('category_id'), fn($query) => $query->where('category_id', $request->input('category_id')))
+            ->when($request->filled('group_id'), fn($query) => $query->where('group_id', $request->input('group_id')))
             ->where('is_active', true)
+            ->with('units')
             ->orderByDesc('created_at')
-            ->with(['units'])
             ->limit(10)
             ->get(['id', 'name', 'slug', 'base_stock', 'image']);
 

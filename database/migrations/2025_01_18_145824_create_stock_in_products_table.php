@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('stock_in_id');
             $table->unsignedBigInteger('product_id');
+            $table->unsignedBigInteger('product_unit_id')->nullable();
             $table->integer('quantity');
             $table->decimal('buy_price', 10, 2);
             $table->string('note')->nullable();
@@ -24,6 +25,7 @@ return new class extends Migration
 
             $table->foreign('stock_in_id')->on('stock_in')->references('id')->onDelete('cascade');
             $table->foreign('product_id')->on('products')->references('id')->onDelete('cascade');
+            $table->foreign('product_unit_id')->on('product_units')->references('id')->onDelete('set null');
         });
     }
 

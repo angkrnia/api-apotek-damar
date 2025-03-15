@@ -4,6 +4,7 @@ namespace App\Http\Controllers\StockIn;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\ProductUnits;
 use App\Models\StockIn\StockInHeader;
 use App\Models\StockMovement;
 use Illuminate\Http\Request;
@@ -157,20 +158,26 @@ class StockInHeaderController extends Controller
                 }
 
                 if ($line->quantity >= 0) {
+                    // Cek conversion dari relasi product_unit_id
+                    $productUnit = ProductUnits::find($line->product_unit_id);
+                    if (!$productUnit) {
+                        continue; // Skip jika product unit tidak ditemukan
+                    }
                     // Stok bertambah
-                    $product->increment('base_stock', abs($line->quantity));
+                    $product->increment('base_stock', abs($line->quantity * $productUnit->conversion_to_base));
                     // Update harga beli
-                    $product->purchase_price = $line->buy_price;
+                    $product->purchase_price = $line->buy_price / max(1, $productUnit->conversion_to_base);
                     $product->save();
 
                     // Masukkan ke stock movement
                     StockMovement::create([
                         'product_id' => $product->id,
                         'movement_type' => 'IN', // Barang masuk
-                        'qty_in' => $line->quantity,
+                        'qty_in' => $line->quantity * $productUnit->conversion_to_base,
                         'qty_out' => 0,
                         'remaining' => $product->base_stock,
                         'reference_type' => 'Stok Masuk ' . now()->setTimezone('Asia/Jakarta')->format('d-m-Y H:i:s'),
+                        'reference_id' => $stock->id,
                         'note' => $stock->note,
                         'created_by' => auth()->user()->fullname
                     ]);

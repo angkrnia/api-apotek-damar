@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\StockIn\StockInDetail;
 use App\Models\StockIn\StockInHeader;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class StockInDetailController extends Controller
 {
@@ -27,9 +28,9 @@ class StockInDetailController extends Controller
 
         if (isset($request['limit']) || isset($request['page'])) {
             $limit = $request['limit'] ?? 10;
-            $result = $query->with(['product.units'])->paginate($limit)->appends(request()->query());
+            $result = $query->with(['product', 'productUnit.unit'])->paginate($limit)->appends(request()->query());
         } else {
-            $result = $query->with(['product.units'])->get();
+            $result = $query->with(['product', 'productUnit.unit'])->get();
         }
 
         return response()->json([
@@ -44,6 +45,7 @@ class StockInDetailController extends Controller
     {
         $request->validate([
             'product_id' => ['required', 'exists:products,id'],
+            'product_unit_id' => ['required', Rule::exists('product_units', 'id')->where('product_id', $request->product_id)],
             'quantity' => ['required', 'numeric', 'min:0'],
             'buy_price' => ['required', 'numeric', 'min:0'],
             'note' => ['nullable', 'string', 'max:255'],
@@ -67,9 +69,10 @@ class StockInDetailController extends Controller
             ], 400);
         }
 
-        $stockHeader = StockInDetail::create([
+        $stockDetail = StockInDetail::create([
             'stock_in_id' => $stock->id,
             'product_id' => $request->product_id,
+            'product_unit_id' => $request->product_unit_id,
             'quantity' => $request->quantity,
             'buy_price' => $request->buy_price,
             'note' => $request->note,
@@ -79,7 +82,7 @@ class StockInDetailController extends Controller
         return response()->json([
             'code'      => 201,
             'status'    => true,
-            'data'      => $stockHeader
+            'data'      => $stockDetail
         ], 201);
     }
 

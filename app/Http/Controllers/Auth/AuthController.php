@@ -44,10 +44,10 @@ class AuthController extends Controller
 
             if (!$token) {
                 return response()->json([
-                    'code' => 401,
+                    'code' => 400,
                     'status' => false,
                     'message' => 'No Whatsapp atau password salah.',
-                ], 401);
+                ], 400);
             }
 
             $user = Auth::user();

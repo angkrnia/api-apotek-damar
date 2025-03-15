@@ -32,4 +32,5 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('categories-list', [App\Http\Controllers\HelperController::class, 'categoryList']);
 	Route::get('groups-list', [App\Http\Controllers\HelperController::class, 'groupList']);
 	Route::get('units-list', [App\Http\Controllers\HelperController::class, 'unitList']);
+    Route::get('medicines-list', [App\Http\Controllers\HelperController::class, 'medicineList']);
 });

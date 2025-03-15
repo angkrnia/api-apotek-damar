@@ -3,6 +3,7 @@
 namespace App\Models\StockIn;
 
 use App\Models\Product;
+use App\Models\ProductUnits;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +15,7 @@ class StockInDetail extends Model
     protected $fillable = [
         'stock_in_id',
         'product_id',
+        'product_unit_id',
         'quantity',
         'buy_price',
         'note',
@@ -28,15 +30,28 @@ class StockInDetail extends Model
     public function scopeKeywordSearch(Builder $query, string $searchKeyword): Builder
     {
         $searchable = ['quantity', 'buy_price', 'note'];
-        return $query->where(function ($query) use ($searchKeyword, $searchable) {
-            foreach ($searchable as $column) {
-                $query->orWhere($this->getTable() . '.' . $column, 'LIKE', "%$searchKeyword%");
-            }
-        });
+        $productSearchable = ['products.name', 'products.sku', 'products.description'];
+
+        return $query
+            ->leftJoin('products', 'products.id', '=', $this->getTable() . '.product_id')
+            ->where(function ($query) use ($searchKeyword, $searchable, $productSearchable) {
+                foreach ($searchable as $column) {
+                    $query->orWhere($this->getTable() . '.' . $column, 'LIKE', "%$searchKeyword%");
+                }
+                foreach ($productSearchable as $column) {
+                    $query->orWhere($column, 'LIKE', "%$searchKeyword%");
+                }
+            })
+            ->select($this->getTable() . '.*');
     }
 
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id')->select('id', 'name', 'sku', 'base_stock');
+    }
+
+    public function productUnit()
+    {
+        return $this->belongsTo(ProductUnits::class, 'product_unit_id')->select('id', 'unit_id', 'product_id');
     }
 }
