@@ -29,8 +29,8 @@ return new class extends Migration
             $table->string('dosage')->nullable();
             $table->decimal('purchase_price', 18, 2)->default(0);
             $table->string('indication')->nullable();
-            $table->boolean('is_need_receipt')->default(false);
-            $table->boolean('is_active')->default(true);
+            $table->boolean('is_need_receipt')->nullable()->default(false);
+            $table->boolean('is_active')->nullable()->default(true);
             $table->timestamps();
             $table->string('created_by');
             $table->string('updated_by')->nullable();

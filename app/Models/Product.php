@@ -54,7 +54,17 @@ class Product extends Model
     public function setNameAttribute($value)
     {
         $this->attributes['name'] = $value;
-        $this->attributes['slug'] = Str::slug($value);
+        $slug = Str::slug($value);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        // Cek apakah slug sudah ada di database menggunakan Eloquent
+        while (static::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        $this->attributes['slug'] = $slug;
     }
 
     // relasi ke group
