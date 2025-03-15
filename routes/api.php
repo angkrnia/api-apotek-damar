@@ -28,4 +28,8 @@ Route::middleware(['auth:api'])->group(function () {
     Route::apiResource('stock-entries', App\Http\Controllers\StockIn\StockInHeaderController::class);
     // STOK MASUK DETAIL
     Route::apiResource('stock-entries/{stock}/lines', App\Http\Controllers\StockIn\StockInDetailController::class);
+    // SELECT LIST HELPER
+    Route::get('categories-list', [App\Http\Controllers\HelperController::class, 'categoryList']);
+	Route::get('groups-list', [App\Http\Controllers\HelperController::class, 'groupList']);
+	Route::get('units-list', [App\Http\Controllers\HelperController::class, 'unitList']);
 });

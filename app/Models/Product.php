@@ -31,7 +31,7 @@ class Product extends Model
         'is_need_receipt',
         'is_active',
         'created_by',
-        'update_by',
+        'updated_by',
     ];
     protected $casts = [
         'purchase_price' => 'float',
@@ -73,7 +73,8 @@ class Product extends Model
     public function units()
     {
         return $this->belongsToMany(Unit::class, 'product_units', 'product_id', 'unit_id')
-            ->withPivot('conversion_to_base', 'is_base', 'sell_price', 'new_price');
+            ->withPivot('conversion_to_base', 'is_base', 'description', 'sell_price', 'new_price')
+            ->orderBy('product_units.created_at', 'asc');
     }
 
     protected static function boot()

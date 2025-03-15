@@ -19,8 +19,9 @@ return new class extends Migration
             $table->boolean('is_base')->default(true);
             $table->decimal('sell_price', 18, 2);
             $table->decimal('new_price', 18, 2);
+            $table->string('description');
             $table->string('created_by');
-            $table->string('update_by')->nullable();
+            $table->string('updated_by')->nullable();
             $table->timestamps();
 
             $table->foreign('product_id')->on('products')->references('id')->onDelete('cascade');

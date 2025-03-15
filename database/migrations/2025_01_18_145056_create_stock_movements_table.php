@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('reference_id')->nullable();
             $table->string('note')->nullable();
             $table->string('created_by');
-            $table->string('update_by')->nullable();
+            $table->string('updated_by')->nullable();
             $table->timestamps();
 
             $table->foreign('product_id')->on('products')->references('id')->onDelete('cascade');

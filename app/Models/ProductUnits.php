@@ -16,6 +16,7 @@ class ProductUnits extends Model
         'unit_id',
         'conversion_to_base',
         'is_base',
+        'description',
         'stock',
         'sell_price',
         'new_price',
