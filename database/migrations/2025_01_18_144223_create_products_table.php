@@ -22,7 +22,7 @@ return new class extends Migration
             $table->unsignedBigInteger('base_stock');
             $table->string('image')->nullable();
             $table->string('barcode')->nullable();
-            $table->string('type')->default('Bebas');
+            $table->string('type')->nullable()->default('Bebas');
             $table->string('side_effect')->nullable();
             $table->string('rack_location')->nullable();
             $table->text('description')->nullable();
