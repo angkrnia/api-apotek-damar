@@ -1,42 +1,38 @@
 <?php
 
-namespace App\Models\Opname;
+namespace App\Models;
 
-use App\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class OpnameDetail extends Model
+class Cart extends Model
 {
     use HasFactory;
 
-    protected $table = 'stock_opname_product_line';
     protected $fillable = [
-        'opname_header_id',
+        'session_id',
+        'user_agent',
+        'ip_address',
         'product_id',
-        'qty_system',
-        'qty_real',
-        'qty_diff',
+        'product_unit_id',
+        'quantity',
+        'unit_price',
+        'subtotal',
+        'status',
         'note',
         'created_by',
         'updated_by',
     ];
-    protected $appends = ['has_transaction', 'diff_transaction'];
+    protected $casts = [
+        'unit_price' => 'float',
+        'subtotal' => 'float',
+    ];
 
-    public function getHasTransactionAttribute()
-    {
-        return $this->qty_system !== optional($this->product)->base_stock;
-    }
-
-    public function getDiffTransactionAttribute()
-    {
-        return optional($this->product)->base_stock - $this->qty_system;
-    }
-
+    // search data
     public function scopeKeywordSearch(Builder $query, string $searchKeyword): Builder
     {
-        $searchable = ['qty_system', 'qty_real', 'qty_diff', 'note'];
+        $searchable = ['quantity', 'unit_price', 'subtotal', 'note'];
         $productSearchable = ['products.name', 'products.sku', 'products.description'];
 
         return $query
@@ -50,16 +46,15 @@ class OpnameDetail extends Model
                 }
             })
             ->select($this->getTable() . '.*');
-        // return $query->where(function ($query) use ($searchKeyword) {
-        //     // Cari di kolom-kolom tabel Queue
-        //     foreach ($this->getFillable() as $column) {
-        //         $query->orWhere($this->getTable() . '.' . $column, 'LIKE', "%$searchKeyword%");
-        //     }
-        // });
     }
 
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id')->select('id', 'name', 'sku', 'base_stock');
+    }
+
+    public function productUnit()
+    {
+        return $this->belongsTo(ProductUnits::class, 'product_unit_id')->select('id', 'unit_id', 'product_id', 'new_price');
     }
 }

@@ -29,13 +29,18 @@ Route::middleware(['auth:api'])->group(function () {
     // STOK MASUK DETAIL
     Route::apiResource('stock-entries/{stock}/lines', App\Http\Controllers\StockIn\StockInDetailController::class);
     // STOCK OPNAME HEADER
-	Route::put('opname/{opname}/commit', [App\Http\Controllers\Opname\OpnameHeaderController::class, 'committed']);
-	Route::apiResource('opname', App\Http\Controllers\Opname\OpnameHeaderController::class);
-	// STOCK OPNAME DETAIL
-	Route::apiResource('opname/{opname}/lines', App\Http\Controllers\Opname\OpnameDetailController::class);
+    Route::put('opname/{opname}/commit', [App\Http\Controllers\Opname\OpnameHeaderController::class, 'committed']);
+    Route::apiResource('opname', App\Http\Controllers\Opname\OpnameHeaderController::class);
+    // STOCK OPNAME DETAIL
+    Route::apiResource('opname/{opname}/lines', App\Http\Controllers\Opname\OpnameDetailController::class);
     // SELECT LIST HELPER
     Route::get('categories-list', [App\Http\Controllers\HelperController::class, 'categoryList']);
-	Route::get('groups-list', [App\Http\Controllers\HelperController::class, 'groupList']);
-	Route::get('units-list', [App\Http\Controllers\HelperController::class, 'unitList']);
+    Route::get('groups-list', [App\Http\Controllers\HelperController::class, 'groupList']);
+    Route::get('units-list', [App\Http\Controllers\HelperController::class, 'unitList']);
     Route::get('medicines-list', [App\Http\Controllers\HelperController::class, 'medicineList']);
+    // TAMBAH KE KERANJANG
+    Route::apiResource('carts', App\Http\Controllers\Sales\CartController::class);
+    // CHECKOUT
+    Route::post('checkout', [App\Http\Controllers\Sales\CheckoutController::class, 'checkout']);
+    Route::post('checkout/{sale}/success', [App\Http\Controllers\Sales\CheckoutController::class, 'success']);
 });
