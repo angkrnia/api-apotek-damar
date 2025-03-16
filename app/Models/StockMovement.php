@@ -30,6 +30,12 @@ class StockMovement extends Model
             foreach ($columns as $column) {
                 $query->orWhere($column, 'LIKE', "%$searchKeyword%");
             }
+
+            // Cari juga di relasi 'product' (sesuaikan dengan nama relasi)
+            $query->orWhereHas('product', function ($q) use ($searchKeyword) {
+                $q->where('name', 'LIKE', "%$searchKeyword%")
+                    ->orWhere('sku', 'LIKE', "%$searchKeyword%");
+            });
         });
     }
 
