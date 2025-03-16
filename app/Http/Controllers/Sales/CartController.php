@@ -140,4 +140,57 @@ class CartController extends Controller
             ], 500);
         }
     }
+
+    // Decrement qty cart
+    public function update(Request $request, Cart $cart)
+    {
+        $request->validate([
+            'quantity' => ['required', 'numeric', 'min:0']
+        ]);
+
+        // Jika quantity 0 maka hapus produk
+        if ($request->quantity == 0) {
+            $cart->delete();
+            return response()->json([
+                'code'      => 200,
+                'status'    => true,
+                'message'   => 'Jumlah produk berhasil diubah.'
+            ], 200);
+        }
+
+        $product = Product::find($cart->product_id);
+        $productUnit = ProductUnits::find($cart->product_unit_id);
+        $productBaseStock = $product->base_stock;
+        $productUnitConversion = $productUnit->conversion_to_base;
+
+        if ($productUnitConversion * $request->quantity > $productBaseStock) {
+            DB::rollBack();
+            return response()->json([
+                'code'      => 400,
+                'status'    => false,
+                'message'   => "Stok produk $product->name tidak mencukupi",
+            ], 400);
+        }
+
+        $cart->update([
+            'quantity' => $request->quantity
+        ]);
+
+        return response()->json([
+            'code'      => 200,
+            'status'    => true,
+            'message'   => 'Jumlah produk berhasil diubah.'
+        ], 200);
+    }
+
+    // Remove cart item
+    public function destroy(Request $request, Cart $cart)
+    {
+        $cart->delete();
+        return response()->json([
+            'code'      => 200,
+            'status'    => true,
+            'message'   => 'Berhasil menghapus produk dari keranjang.'
+        ], 200);
+    }
 }

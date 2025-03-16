@@ -44,8 +44,6 @@ class CheckoutController extends Controller
                 ], 400);
             }
 
-            // Check stok saat ini dengan yang ada di cart
-
             // Insert sale header dulu
             $saleHeader = SaleHeader::create([
                 'payment_method' => $request->payment_method,
@@ -82,6 +80,17 @@ class CheckoutController extends Controller
                 $productUnit = ProductUnits::find($cart->product_unit_id);
                 $masterProduct = Product::find($cart->product_id);
                 $qtyOut = $productUnit->conversion_to_base * $cart->quantity;
+                
+                // Check stok saat ini dengan yang ada di cart
+                if ($masterProduct->base_stock < $qtyOut) {
+                    DB::rollBack();
+                    return response()->json([
+                        'code'      => 400,
+                        'status'    => false,
+                        'message'   => 'Stok tidak mencukupi.',
+                    ], 400);
+                }
+
                 $masterProduct->decrement('base_stock', abs($qtyOut));
 
                 // Masukkan ke stock movement
