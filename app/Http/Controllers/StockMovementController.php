@@ -12,6 +12,12 @@ class StockMovementController extends Controller
     {
         $query = StockMovement::query();
 
+        // Jika ada search
+        if (isset($request['search']) && !empty($request['search'])) {
+            $textSearch =  $request['search'];
+            $query->keywordSearch($textSearch);
+        }
+
         // Jika ada query start
         if (isset($request['start']) && !empty($request['start'])) {
             $start = $request['start'];
