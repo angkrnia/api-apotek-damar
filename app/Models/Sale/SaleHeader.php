@@ -71,4 +71,10 @@ class SaleHeader extends Model
             }
         });
     }
+
+    // relasi ke detail produc
+    public function productsLines()
+    {
+        return $this->hasMany(SaleDetail::class, 'sale_id', 'id');
+    }
 }

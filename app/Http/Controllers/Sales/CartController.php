@@ -173,7 +173,8 @@ class CartController extends Controller
         }
 
         $cart->update([
-            'quantity' => $request->quantity
+            'quantity' => $request->quantity,
+            'subtotal' => $productUnit->new_price * $request->quantity,
         ]);
 
         return response()->json([
@@ -191,6 +192,24 @@ class CartController extends Controller
             'code'      => 200,
             'status'    => true,
             'message'   => 'Berhasil menghapus produk dari keranjang.'
+        ], 200);
+    }
+
+    // Remove all carts
+    public function removeCarts(Request $request)
+    {
+        $carts = Cart::where('session_id', getSessionId($request))
+            ->where('status', 'PENDING')
+            ->get(); // Ambil dulu datanya
+
+        foreach ($carts as $cart) {
+            $cart->delete(); // Hapus satu per satu
+        }
+
+        return response()->json([
+            'code'      => 200,
+            'status'    => true,
+            'message'   => 'Berhasil menghapus produk.'
         ], 200);
     }
 }

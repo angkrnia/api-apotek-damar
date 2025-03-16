@@ -69,6 +69,7 @@ class CheckoutController extends Controller
                     'subtotal'            => $cart->subtotal,
                     'note'                => $cart->note ?? '',
                     'created_by'          => auth()->user()->fullname,
+                    'created_at'          => now(),
                 ];
 
                 // Update status cart menjadi CHECKED_OUT

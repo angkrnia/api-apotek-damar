@@ -29,4 +29,9 @@ class SaleDetail extends Model
         'product_unit_price' => 'float',
         'subtotal' => 'float',
     ];
+
+    public function sale()
+    {
+        return $this->belongsTo(SaleHeader::class, 'sale_id');
+    }
 }

@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Group;
 use App\Models\Product;
 use App\Models\ProductUnits;
+use App\Models\Sale\SaleHeader;
 use App\Models\StockMovement;
 use App\Models\Unit;
 use Illuminate\Http\Request;
@@ -93,6 +94,16 @@ class HelperController extends Controller
             'code'      => 200,
             'status'    => true,
             'data'      => $result
+        ]);
+    }
+
+    public function receiptNumber(Request $request, $trx)
+    {
+        $sale = SaleHeader::with('productsLines')->where('receipt_number', $trx)->firstOrFail();
+        return response()->json([
+            'code'      => 200,
+            'status'    => true,
+            'data'      => $sale
         ]);
     }
 }

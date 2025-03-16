@@ -43,4 +43,10 @@ Route::middleware(['auth:api'])->group(function () {
     // CHECKOUT
     Route::post('checkout', [App\Http\Controllers\Sales\CheckoutController::class, 'checkout']);
     Route::post('checkout/{sale}/success', [App\Http\Controllers\Sales\CheckoutController::class, 'success']);
+    // DETAIL RECEIPT NUMBER UNTUK STRUK
+    Route::get('receipt-number/{trx}', [App\Http\Controllers\HelperController::class, 'receiptNumber']);
+    // REMOVE ALL CART
+    Route::delete('remove-carts', [App\Http\Controllers\Sales\CartController::class, 'removeCarts']);
+    // Sales transaction history
+    Route::get('sales-transaction', [App\Http\Controllers\Sales\SalesController::class, 'index']);
 });
