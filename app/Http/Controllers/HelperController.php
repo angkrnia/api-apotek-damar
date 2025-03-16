@@ -50,7 +50,7 @@ class HelperController extends Controller
             ->where('is_active', true)
             ->with('units')
             ->orderByDesc('created_at')
-            ->limit(max(10, intval($request->limit ?? 10)))
+            ->limit($request->input('limit', 10))
             ->get(['id', 'name', 'slug', 'base_stock', 'image']);
 
         return response()->json([
