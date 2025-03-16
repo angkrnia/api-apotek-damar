@@ -27,6 +27,7 @@ class Cart extends Model
     protected $casts = [
         'unit_price' => 'float',
         'subtotal' => 'float',
+        'quantity' => 'integer',
     ];
 
     // search data
