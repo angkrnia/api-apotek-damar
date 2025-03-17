@@ -62,7 +62,7 @@ class ChartController extends Controller
             ->count();
 
         // Hitung jumlah produk yang stoknya kritis (anggap stok di bawah 10 dianggap kritis)
-        $criticalStockThreshold = 10;
+        $criticalStockThreshold = 3;
         $totalCriticalStockProducts = Product::where('is_active', 1)
             ->whereBetween('base_stock', [1, $criticalStockThreshold])
             ->count();
