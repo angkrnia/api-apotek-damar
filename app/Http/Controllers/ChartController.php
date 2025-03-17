@@ -16,7 +16,7 @@ class ChartController extends Controller
     public function getTransactionSummary(Request $request)
     {
         // Ambil date range start dan end, default ke hari ini jika tidak ada
-        $start = Carbon::parse($request->input('start', now()->startOfDay()))->startOfDay();
+        $start = Carbon::parse($request->input('start', Carbon::createFromTimestamp(0)))->startOfDay();
         $end = Carbon::parse($request->input('end', now()->endOfDay()))->endOfDay();
 
         // Query ke SaleHeader dengan filter tanggal
