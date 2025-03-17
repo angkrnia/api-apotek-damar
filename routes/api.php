@@ -49,4 +49,8 @@ Route::middleware(['auth:api'])->group(function () {
     Route::delete('remove-carts', [App\Http\Controllers\Sales\CartController::class, 'removeCarts']);
     // Sales transaction history
     Route::get('sales-transaction', [App\Http\Controllers\Sales\SalesController::class, 'index']);
+    // DASHBOARD GRAFIK
+	Route::get('chart/summary-transaction', [App\Http\Controllers\ChartController::class, 'getTransactionSummary']);
+	Route::get('chart/summary-product', [App\Http\Controllers\ChartController::class, 'getProductSummary']);
+	Route::get('chart/transaction-date-by-date', [App\Http\Controllers\ChartController::class, 'getTransactionDateByDate']);
 });
