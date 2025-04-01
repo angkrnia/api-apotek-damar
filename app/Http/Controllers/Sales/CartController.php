@@ -145,7 +145,9 @@ class CartController extends Controller
     public function update(Request $request, Cart $cart)
     {
         $request->validate([
-            'quantity' => ['required', 'numeric', 'min:0']
+            'quantity' => ['required', 'numeric', 'min:0'],
+            'unit_price' => ['nullable', 'numeric', 'min:0'],
+            'note' => ['nullable', 'string', 'max:1000'],
         ]);
 
         // Jika quantity 0 maka hapus produk
@@ -172,6 +174,21 @@ class CartController extends Controller
             ], 400);
         }
 
+        // Jika ada unit_price maka update unit price dan kalikan dengan subtotal
+        if (isset($request->unit_price) && !empty($request->unit_price) && $request->unit_price != null) {
+            $cart->update([
+                'quantity' => $request->quantity,
+                'unit_price' => $request->unit_price,
+                'subtotal' => $request->unit_price * $request->quantity,
+                'note' => $request->note
+            ]);
+            return response()->json([
+                'code'      => 200,
+                'status'    => true,
+                'message'   => 'Keranjang produk berhasil diubah.'
+            ], 200);
+        }
+
         $cart->update([
             'quantity' => $request->quantity,
             'subtotal' => $productUnit->new_price * $request->quantity,
@@ -180,7 +197,7 @@ class CartController extends Controller
         return response()->json([
             'code'      => 200,
             'status'    => true,
-            'message'   => 'Jumlah produk berhasil diubah.'
+            'message'   => 'Keranjang produk berhasil diubah.'
         ], 200);
     }
 
