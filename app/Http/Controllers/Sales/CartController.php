@@ -191,7 +191,7 @@ class CartController extends Controller
 
         $cart->update([
             'quantity' => $request->quantity,
-            'subtotal' => $productUnit->new_price * $request->quantity,
+            'subtotal' => $request->unit_price * $request->quantity,
         ]);
 
         return response()->json([
