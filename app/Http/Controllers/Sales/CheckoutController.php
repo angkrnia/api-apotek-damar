@@ -57,14 +57,22 @@ class CheckoutController extends Controller
 
             // Insert header detail sesuai yang ada di carts
             $data = [];
+            $movementBuffer = [];
+
             foreach ($carts as $cart) {
+                $productUnit = ProductUnits::find($cart->product_unit_id);
+                $masterProduct = Product::find($cart->product_id);
+                $qtyOut = $productUnit->conversion_to_base * $cart->quantity;
+
+                // 1. Masukkan ke sale detail
                 $data[] = [
                     'sale_id'             => $saleHeader->id,
                     'cart_id'             => $cart->id,
                     'product_name'        => $cart->product->name,
                     'product_sku'         => $cart->product->sku,
-                    'product_unit'        => $cart->productUnit?->unit?->name ?? '-',
-                    'product_unit_price'  => $cart->productUnit?->new_price ?? $cart->unit_price,
+                    'product_unit'        => $productUnit->unit->name ?? '-',
+                    'product_unit_price'  => $productUnit->new_price ?? $cart->unit_price,
+                    'product_unit_cost'   => $cart->product->purchase_price * $productUnit->conversion_to_base,
                     'quantity'            => $cart->quantity,
                     'subtotal'            => $cart->subtotal,
                     'note'                => $cart->note ?? '',
@@ -72,38 +80,49 @@ class CheckoutController extends Controller
                     'created_at'          => now(),
                 ];
 
-                // Update status cart menjadi CHECKED_OUT
-                $cart['status'] = 'CHECKED_OUT';
-                $cart['updated_by'] = auth()->user()->fullname;
+                // 2. Update cart
+                $cart->status = 'CHECKED_OUT';
+                $cart->updated_by = auth()->user()->fullname;
                 $cart->save();
 
-                // Hitung stok yang keluar berdasarkan unit id lalu konversi ke satuan dasar
-                $productUnit = ProductUnits::find($cart->product_unit_id);
-                $masterProduct = Product::find($cart->product_id);
-                $qtyOut = $productUnit->conversion_to_base * $cart->quantity;
-                
-                // Check stok saat ini dengan yang ada di cart
+                // 3. Akumulasi untuk stok movement
+                if (!isset($movementBuffer[$cart->product_id])) {
+                    $movementBuffer[$cart->product_id] = [
+                        'qty_out' => 0,
+                        'notes' => [],
+                    ];
+                }
+                $movementBuffer[$cart->product_id]['qty_out'] += $qtyOut;
+                if ($cart->note) {
+                    $movementBuffer[$cart->product_id]['notes'][] = $cart->note;
+                }
+
+                // 4. Cek stok per cart
                 if ($masterProduct->base_stock < $qtyOut) {
                     DB::rollBack();
                     return response()->json([
                         'code'      => 400,
                         'status'    => false,
-                        'message'   => 'Stok tidak mencukupi.',
+                        'message'   => "Stok produk {$masterProduct->name} tidak mencukupi.",
                     ], 400);
                 }
 
-                $masterProduct->decrement('base_stock', abs($qtyOut));
+                // 5. Kurangi stok
+                $masterProduct->decrement('base_stock', $qtyOut);
+            }
 
-                // Masukkan ke stock movement
+            // 6. Masukkan stock movement sekali per produk
+            foreach ($movementBuffer as $productId => $movement) {
+                $product = Product::find($productId);
                 StockMovement::create([
-                    'product_id' => $cart->product_id,
-                    'movement_type' => 'OUT', // Barang keluar
-                    'qty_in' => 0,
-                    'qty_out' => $qtyOut,
-                    'remaining' => $masterProduct->base_stock,
-                    'reference_type' => 'Penjualan #' . $saleHeader->receipt_number,
-                    'note' => $cart->note ?? '',
-                    'created_by' => auth()->user()->fullname
+                    'product_id'       => $productId,
+                    'movement_type'    => 'OUT',
+                    'qty_in'           => 0,
+                    'qty_out'          => $movement['qty_out'],
+                    'remaining'        => $product->base_stock,
+                    'reference_type'   => 'Penjualan #' . $saleHeader->receipt_number,
+                    'note'             => implode(' | ', $movement['notes']),
+                    'created_by'       => auth()->user()->fullname
                 ]);
             }
             SaleDetail::insert($data);

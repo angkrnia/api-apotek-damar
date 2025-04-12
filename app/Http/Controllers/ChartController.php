@@ -36,6 +36,9 @@ class ChartController extends Controller
             $query->whereBetween('created_at', [$start, $end]);
         })->distinct('product_sku')->count('product_sku');
 
+        // Total Keuntungan
+        $totalProfit = SaleHeader::whereBetween('created_at', [$start, $end])->sum('grand_total');
+
         return response()->json([
             'code' => 200,
             'status' => true,
@@ -44,6 +47,7 @@ class ChartController extends Controller
                 'total_sales' => $summary->total_sales ?? 0, // Total penjualan
                 'total_quantity' => intval($totalQuantity) ?? 0, // Jumlah qty produk terjual
                 'total_product' => intval($totalProduct) ?? 0, // Jumlah produk terjual
+                'total_profit' => $totalProfit ?? 0
             ]
         ]);
     }
@@ -67,6 +71,9 @@ class ChartController extends Controller
             ->whereBetween('base_stock', [1, $criticalStockThreshold])
             ->count();
 
+        // Hitung harga modal semua produk
+        $totalProductCost = Product::where('is_active', 1)->sum('purchase_price');
+
         return response()->json([
             'code' => 200,
             'status' => true,
@@ -75,6 +82,7 @@ class ChartController extends Controller
                 'total_stock_onhand' => intval($totalStockOnHand), // Total qty semua produk yang masih tersedia
                 'total_out_of_stock_products' => intval($totalOutOfStockProducts), // Jumlah produk yang stoknya habis
                 'total_critical_stock_products' => intval($totalCriticalStockProducts), // Jumlah produk dengan stok kritis
+                'total_product_cost' => $totalProductCost, // Total harga modal semua produk
             ]
         ]);
     }
@@ -86,24 +94,28 @@ class ChartController extends Controller
             $dates->push(now()->subDays($i)->format('Y-m-d'));
         }
 
-        // Ambil data dari model Queue
+        // Ambil data dari model Sales dan SalesProductLine
         $data = SaleHeader::select(
-            DB::raw('DATE(created_at) as date'),
+            DB::raw('DATE(sales.created_at) as date'),
             DB::raw('COUNT(*) as total'),
-            DB::raw('SUM(grand_total) as total_sales')
+            DB::raw('SUM(sales.grand_total) as total_sales'),
+            DB::raw('SUM(sales_product_line.product_unit_cost * sales_product_line.quantity) as total_cost'), // Total harga modal
+            DB::raw('SUM(sales.grand_total - (sales_product_line.product_unit_cost * sales_product_line.quantity)) as total_profit') // Menghitung total keuntungan
         )
-            ->where('created_at', '>=', now()->subDays(30))
-            ->groupBy(DB::raw('DATE(created_at)'))
-            ->orderBy(DB::raw('DATE(created_at)', 'asc'))
+            ->join('sales_product_line', 'sales_product_line.sale_id', '=', 'sales.id') // Gabungkan dengan sales_product_line berdasarkan sale_id
+            ->where('sales.created_at', '>=', now()->subDays(30))
+            ->groupBy(DB::raw('DATE(sales.created_at)'))
+            ->orderBy(DB::raw('DATE(sales.created_at)', 'asc'))
             ->get()
             ->keyBy('date');
 
-        // Gabungkan semua tanggal dengan data Queue
+        // Gabungkan semua tanggal dengan data Sales
         $history = $dates->map(function ($date) use ($data) {
             return [
                 'date' => Carbon::parse($date)->format('j M y'), // Format tanggal
-                'total' => $data[$date]->total ?? 0,            // Ambil total, default 0 jika tidak ada data
-                'total_sales' => $data[$date]->total_sales ?? 0,   // Ambil total_sales, default 0 jika tidak ada data
+                'total' => $data[$date]->total ?? 0,            // Ambil total transaksi, default 0 jika tidak ada data
+                'total_sales' => $data[$date]->total_sales ?? 0,   // Ambil total sales, default 0 jika tidak ada data
+                'total_profit' => $data[$date]->total_profit ?? 0, // Ambil total keuntungan, default 0 jika tidak ada data
             ];
         });
 

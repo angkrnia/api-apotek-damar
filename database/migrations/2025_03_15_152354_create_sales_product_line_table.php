@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('product_sku');
             $table->string('product_unit');
             $table->decimal('product_unit_price', 18, 2);
+            $table->decimal('product_unit_cost', 18, 2);
             $table->integer('quantity');
             $table->decimal('subtotal', 18, 2);
             $table->string('note')->nullable();

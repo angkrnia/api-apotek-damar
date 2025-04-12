@@ -56,6 +56,6 @@ class Cart extends Model
 
     public function productUnit()
     {
-        return $this->belongsTo(ProductUnits::class, 'product_unit_id')->select('id', 'unit_id', 'product_id', 'new_price');
+        return $this->belongsTo(ProductUnits::class, 'product_unit_id')->select('id', 'unit_id', 'product_id', 'new_price', 'conversion_to_base');
     }
 }

@@ -161,11 +161,32 @@ class CartController extends Controller
         }
 
         $product = Product::find($cart->product_id);
-        $productUnit = ProductUnits::find($cart->product_unit_id);
         $productBaseStock = $product->base_stock;
-        $productUnitConversion = $productUnit->conversion_to_base;
 
-        if ($productUnitConversion * $request->quantity > $productBaseStock) {
+        // Ambil semua item dalam keranjang yang memiliki product_id sama
+        $relatedCarts = Cart::where('product_id', $cart->product_id)
+            ->where('session_id', getSessionId($request))
+            ->where('status', 'PENDING')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Total kuantitas dalam satuan dasar
+        $totalRequested = 0;
+
+        foreach ($relatedCarts as $item) {
+            $unit = ProductUnits::find($item->product_unit_id);
+            $conversion = $unit->conversion_to_base;
+
+            $qty = $item->quantity;
+
+            if ($item->id == $cart->id) {
+                $qty = $request->quantity;
+            }
+
+            $totalRequested += $qty * $conversion;
+        }
+
+        if ($totalRequested > $productBaseStock) {
             DB::rollBack();
             return response()->json([
                 'code'      => 400,

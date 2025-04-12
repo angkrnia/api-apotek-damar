@@ -19,6 +19,7 @@ class SaleDetail extends Model
         'product_sku',
         'product_unit',
         'product_unit_price',
+        'product_unit_cost',
         'quantity',
         'subtotal',
         'note',
@@ -27,6 +28,7 @@ class SaleDetail extends Model
     ];
     protected $casts = [
         'product_unit_price' => 'float',
+        'product_unit_cost' => 'float',
         'subtotal' => 'float',
     ];
 
