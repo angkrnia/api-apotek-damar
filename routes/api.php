@@ -52,9 +52,11 @@ Route::middleware(['auth:api'])->group(function () {
     // Sales transaction history
     Route::get('sales-transaction', [App\Http\Controllers\Sales\SalesController::class, 'index']);
     // DASHBOARD GRAFIK
-	Route::get('chart/summary-transaction', [App\Http\Controllers\ChartController::class, 'getTransactionSummary']);
-	Route::get('chart/summary-product', [App\Http\Controllers\ChartController::class, 'getProductSummary']);
-	Route::get('chart/transaction-date-by-date', [App\Http\Controllers\ChartController::class, 'getTransactionDateByDate']);
+    Route::get('chart/summary-transaction', [App\Http\Controllers\ChartController::class, 'getTransactionSummary']);
+    Route::get('chart/summary-product', [App\Http\Controllers\ChartController::class, 'getProductSummary']);
+    Route::get('chart/transaction-date-by-date', [App\Http\Controllers\ChartController::class, 'getTransactionDateByDate']);
     // CANCEL TRANSACTION
-    Route::put('sales/{sale}/cancel', [App\Http\Controllers\Sales\SalesController::class, 'cancel']);
+    Route::middleware(['admin'])->group(function () {
+        Route::put('sales/{sale}/cancel', [App\Http\Controllers\Sales\SalesController::class, 'cancel']);
+    });
 });

@@ -2,6 +2,7 @@
 
 namespace App\Models\Sale;
 
+use App\Models\Cart;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -35,5 +36,10 @@ class SaleDetail extends Model
     public function sale()
     {
         return $this->belongsTo(SaleHeader::class, 'sale_id');
+    }
+
+    public function cart()
+    {
+        return $this->belongsTo(Cart::class, 'cart_id');
     }
 }
