@@ -20,7 +20,7 @@ class ChartController extends Controller
         $end = Carbon::parse($request->input('end', now()->endOfDay()))->endOfDay();
 
         // Query ke SaleHeader dengan filter tanggal
-        $summary = SaleHeader::whereBetween('created_at', [$start, $end])
+        $summary = SaleHeader::where('status', 'SUCCESS')->whereBetween('created_at', [$start, $end])
             ->selectRaw('
             COUNT(id) as total_transaction,
             SUM(grand_total) as total_sales
@@ -29,15 +29,15 @@ class ChartController extends Controller
 
         // Query total quantity dari SaleDetail
         $totalQuantity = SaleDetail::whereHas('sale', function ($query) use ($start, $end) {
-            $query->whereBetween('created_at', [$start, $end]);
+            $query->whereStatus('SUCCESS')->whereBetween('created_at', [$start, $end]);
         })->sum('quantity');
 
         $totalProduct = SaleDetail::whereHas('sale', function ($query) use ($start, $end) {
-            $query->whereBetween('created_at', [$start, $end]);
+            $query->whereStatus('SUCCESS')->whereBetween('created_at', [$start, $end]);
         })->distinct('product_sku')->count('product_sku');
 
         // Total Keuntungan
-        $totalProfit = SaleHeader::whereBetween('created_at', [$start, $end])->sum('grand_total');
+        $totalProfit = SaleHeader::where('status', 'SUCCESS')->whereBetween('created_at', [$start, $end])->sum('grand_total');
 
         return response()->json([
             'code' => 200,
@@ -95,7 +95,7 @@ class ChartController extends Controller
         }
 
         // Ambil data dari model Sales dan SalesProductLine
-        $data = SaleHeader::select(
+        $data = SaleHeader::where('status', 'SUCCESS')->select(
             DB::raw('DATE(sales.created_at) as date'),
             DB::raw('COUNT(*) as total'),
             DB::raw('SUM(sales.grand_total) as total_sales'),
