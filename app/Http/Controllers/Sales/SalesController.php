@@ -33,4 +33,9 @@ class SalesController extends Controller
             'data'      => $result
         ]);
     }
+
+    public function cancel(Request $request, SaleHeader $sale)
+    {
+        
+    }
 }

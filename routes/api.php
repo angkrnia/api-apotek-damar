@@ -10,6 +10,8 @@ Route::put('refresh-token', [App\Http\Controllers\Auth\AuthController::class, 'r
 
 // KHUSUS YANG SUDAH LOGIN
 Route::middleware(['auth:api'])->group(function () {
+    // Change Password
+    Route::post('change-password', [App\Http\Controllers\Auth\AuthController::class, 'changePassword']);
     // Upload photos
     Route::post('upload/photos', [App\Http\Controllers\UploadPhotosController::class, 'store']);
     // Units
@@ -53,4 +55,6 @@ Route::middleware(['auth:api'])->group(function () {
 	Route::get('chart/summary-transaction', [App\Http\Controllers\ChartController::class, 'getTransactionSummary']);
 	Route::get('chart/summary-product', [App\Http\Controllers\ChartController::class, 'getProductSummary']);
 	Route::get('chart/transaction-date-by-date', [App\Http\Controllers\ChartController::class, 'getTransactionDateByDate']);
+    // CANCEL TRANSACTION
+    Route::put('sales/{sale}/cancel', [App\Http\Controllers\Sales\SalesController::class, 'cancel']);
 });

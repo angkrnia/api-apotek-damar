@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -168,6 +169,34 @@ class AuthController extends Controller
             ]);
         } else {
             return response()->json(['message' => 'Invalid refresh token'], 401);
+        }
+    }
+
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'new_password' => ['required', 'string', 'min:6'],
+            'confirm_password' => ['required', 'string', 'min:6', 'same:new_password'],
+        ]);
+
+        try {
+            $user = User::where('id', auth()->user()->id)->first();
+
+            $user->update([
+                'password' => Hash::make($request->new_password)
+            ]);
+
+            return response()->json([
+                'code'      => 200,
+                'status'    => true,
+                'message'   => 'Password berhasil diubah.',
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'code'    => 500,
+                'status'  => false,
+                'message' => $th->getMessage() ?: 'Password gagal diubah.',
+            ], 500);
         }
     }
 }
