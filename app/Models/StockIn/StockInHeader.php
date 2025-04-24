@@ -22,11 +22,23 @@ class StockInHeader extends Model
     ];
     protected $appends = [
         'total_products',
+        'total_quantity',
+        'total_buy_price',
     ];
 
     public function getTotalProductsAttribute()
     {
         return $this->productsLines()->count();
+    }
+
+    public function getTotalQuantityAttribute()
+    {
+        return $this->productsLines()->sum('quantity');
+    }
+
+    public function getTotalBuyPriceAttribute()
+    {
+        return $this->productsLines()->sum('buy_price');
     }
 
     public function scopeKeywordSearch(Builder $query, string $searchKeyword): Builder
