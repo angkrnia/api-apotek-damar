@@ -95,18 +95,36 @@ class ChartController extends Controller
         }
 
         // Ambil data dari model Sales dan SalesProductLine
-        $data = SaleHeader::where('status', 'SUCCESS')->select(
-            DB::raw('DATE(sales.created_at) as date'),
-            DB::raw('COUNT(*) as total'),
-            DB::raw('SUM(sales.grand_total) as total_sales'),
-            DB::raw('SUM(sales_product_line.product_unit_cost * sales_product_line.quantity) as total_cost'), // Total harga modal
-            DB::raw('SUM(sales.grand_total - (sales_product_line.product_unit_cost * sales_product_line.quantity)) as total_profit') // Menghitung total keuntungan
-        )
-            ->join('sales_product_line', 'sales_product_line.sale_id', '=', 'sales.id') // Gabungkan dengan sales_product_line berdasarkan sale_id
+        // $data = SaleHeader::where('status', 'SUCCESS')->select(
+        //     DB::raw('DATE(sales.created_at) as date'),
+        //     DB::raw('COUNT(*) as total'),
+        //     DB::raw('SUM(sales.grand_total) as total_sales'),
+        //     DB::raw('SUM(sales_product_line.product_unit_cost * sales_product_line.quantity) as total_cost'), // Total harga modal
+        //     DB::raw('SUM(sales.grand_total - (sales_product_line.product_unit_cost * sales_product_line.quantity)) as total_profit') // Menghitung total keuntungan
+        // )
+        //     ->join('sales_product_line', 'sales_product_line.sale_id', '=', 'sales.id') // Gabungkan dengan sales_product_line berdasarkan sale_id
+        //     ->where('sales.created_at', '>=', now()->subDays(30))
+        //     ->groupBy(DB::raw('DATE(sales.created_at)'))
+        //     ->orderBy(DB::raw('DATE(sales.created_at)', 'asc'))
+        //     ->get()
+        //     ->keyBy('date');
+        $data = SaleHeader::from('sales as sales')
+            ->join('sales_product_line', 'sales_product_line.sale_id', '=', 'sales.id')
+            ->where('sales.status', 'SUCCESS')
             ->where('sales.created_at', '>=', now()->subDays(30))
+            ->select(
+                DB::raw('DATE(sales.created_at) as date'),
+                DB::raw('COUNT(DISTINCT sales.id) as total'),
+                DB::raw('SUM(DISTINCT sales.grand_total) as total_sales'),
+                DB::raw('SUM(sales_product_line.product_unit_cost * sales_product_line.quantity) as total_cost')
+            )
             ->groupBy(DB::raw('DATE(sales.created_at)'))
-            ->orderBy(DB::raw('DATE(sales.created_at)', 'asc'))
+            ->orderBy(DB::raw('DATE(sales.created_at)'), 'asc')
             ->get()
+            ->map(function ($row) {
+                $row->total_profit = $row->total_sales - $row->total_cost;
+                return $row;
+            })
             ->keyBy('date');
 
         // Gabungkan semua tanggal dengan data Sales
