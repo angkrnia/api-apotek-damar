@@ -38,7 +38,9 @@ class StockInHeader extends Model
 
     public function getTotalBuyPriceAttribute()
     {
-        return $this->productsLines()->sum('buy_price');
+        return $this->productsLines()->get()->sum(function ($line) {
+            return $line->buy_price * $line->quantity;
+        });
     }
 
     public function scopeKeywordSearch(Builder $query, string $searchKeyword): Builder
