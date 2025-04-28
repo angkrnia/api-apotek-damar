@@ -52,6 +52,6 @@ class StockInDetail extends Model
 
     public function productUnit()
     {
-        return $this->belongsTo(ProductUnits::class, 'product_unit_id')->select('id', 'unit_id', 'product_id');
+        return $this->belongsTo(ProductUnits::class, 'product_unit_id')->select('id', 'unit_id', 'product_id', 'sell_price', 'new_price');
     }
 }
