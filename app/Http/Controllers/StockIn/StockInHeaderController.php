@@ -183,6 +183,12 @@ class StockInHeaderController extends Controller
                         'created_by' => auth()->user()->fullname
                     ]);
                 }
+
+                // Update stock produk line
+                $line->update([
+                    'status' => 'COMMITED',
+                    'updated_by' => auth()->user()->fullname
+                ]);
             }
 
             DB::commit();

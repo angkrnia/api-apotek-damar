@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Sale\SaleDetail;
 use App\Models\Sale\SaleHeader;
+use App\Models\StockIn\StockInDetail;
+use App\Models\StockIn\StockInHeader;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -133,6 +135,7 @@ class ChartController extends Controller
                 'date' => Carbon::parse($date)->format('j M y'), // Format tanggal
                 'total' => $data[$date]->total ?? 0,            // Ambil total transaksi, default 0 jika tidak ada data
                 'total_sales' => $data[$date]->total_sales ?? 0,   // Ambil total sales, default 0 jika tidak ada data
+                'total_cost' => $data[$date]->total_cost ?? 0,     // Ambil total harga modal, default 0 jika tidak ada data
                 'total_profit' => $data[$date]->total_profit ?? 0, // Ambil total keuntungan, default 0 jika tidak ada data
             ];
         });
@@ -142,6 +145,61 @@ class ChartController extends Controller
             'code' => 200,
             'status' => true,
             'data' => $history,
+        ]);
+    }
+
+    public function getSalesSummary(Request $request)
+    {
+        // Total Keuntungan Rp
+        // Total Pembelian Rp
+        // Produk Dibeli
+        // QTY Produk Dibeli
+
+        $saleIds = SaleHeader::from('sales as sales')
+            ->where('sales.status', 'SUCCESS')
+            ->when(request('start'), fn($q, $start) => $q->where('sales.created_at', '>=', \Carbon\Carbon::parse($start)->startOfDay()))
+            ->when(request('end'), fn($q, $end) => $q->where('sales.created_at', '<=', \Carbon\Carbon::parse($end)->endOfDay()))
+            ->pluck('sales.id');
+
+        // Total sales dari ID yang sama
+        $totalSales = SaleHeader::whereIn('id', $saleIds)->sum('grand_total');
+
+        // Total cost dari product line yang terhubung ke sales yang sama
+        $totalCost = DB::table('sales_product_line')
+            ->whereIn('sale_id', $saleIds)
+            ->select(DB::raw('SUM(product_unit_cost * quantity) as total_cost'))
+            ->value('total_cost');
+
+        // Total pembelian (stok masuk)
+        $stockInIds = StockInHeader::from('stock_in as stock_in')
+            ->where('stock_in.status', 'COMMITED')
+            ->when(request('start'), fn($q, $start) => $q->where('stock_in.created_at', '>=', \Carbon\Carbon::parse($start)->startOfDay()))
+            ->when(request('end'), fn($q, $end) => $q->where('stock_in.created_at', '<=', \Carbon\Carbon::parse($end)->endOfDay()))
+            ->pluck('stock_in.id');
+
+        $totalBuyPrice = DB::table('stock_in_product_line')
+            ->whereIn('stock_in_id', $stockInIds)
+            ->select(DB::raw('SUM(buy_price * quantity) as total_cost'))
+            ->value('total_cost');
+
+        $totalBuyProducts = StockInDetail::whereIn('stock_in_id', $stockInIds)
+            ->distinct('product_id')
+            ->count('product_id');
+
+        $totalBuyQuantity = SaleDetail::whereIn('sale_id', $saleIds)->sum('quantity');
+
+        $data = (object) [
+            'total_profit' => (float) $totalSales - (float) $totalCost,
+            'total_buy_price' => (float) $totalBuyPrice,
+            'total_buy_product' => (int) $totalBuyProducts,
+            'total_buy_quantity' => (int) $totalBuyQuantity
+        ];
+
+        // Return response sebagai JSON
+        return response()->json([
+            'code' => 200,
+            'status' => true,
+            'data' => $data,
         ]);
     }
 }

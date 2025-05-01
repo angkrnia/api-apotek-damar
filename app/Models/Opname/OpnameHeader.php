@@ -23,6 +23,15 @@ class OpnameHeader extends Model
         'updated_by',
     ];
 
+    protected $appends = [
+        'total_products',
+    ];
+
+    public function getTotalProductsAttribute()
+    {
+        return $this->productsLines()->count();
+    }
+
     public function scopeKeywordSearch(Builder $query, string $searchKeyword): Builder
     {
         $searchable = ['code', 'pic', 'note'];

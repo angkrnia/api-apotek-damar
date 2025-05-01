@@ -53,6 +53,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('sales-transaction', [App\Http\Controllers\Sales\SalesController::class, 'index']);
     // DASHBOARD GRAFIK
     Route::get('chart/summary-transaction', [App\Http\Controllers\ChartController::class, 'getTransactionSummary']);
+    Route::get('chart/summary-sales', [App\Http\Controllers\ChartController::class, 'getSalesSummary']);
     Route::get('chart/summary-product', [App\Http\Controllers\ChartController::class, 'getProductSummary']);
     Route::get('chart/transaction-date-by-date', [App\Http\Controllers\ChartController::class, 'getTransactionDateByDate']);
     // CANCEL TRANSACTION
