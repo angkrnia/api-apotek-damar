@@ -23,9 +23,6 @@ class ProductController extends Controller
 
         $query->orderBy('name', 'asc');
 
-        // Hanya jika produknya aktif
-        $query->where('is_active', true);
-
         if (isset($request['limit']) || isset($request['page'])) {
             $limit = $request['limit'] ?? 10;
             $result = $query->with(['group', 'category', 'units'])->paginate($limit)->appends(request()->query());
