@@ -58,5 +58,6 @@ Route::middleware(['auth:api'])->group(function () {
     // CANCEL TRANSACTION
     Route::middleware(['admin'])->group(function () {
         Route::put('sales/{sale}/cancel', [App\Http\Controllers\Sales\SalesController::class, 'cancel']);
+        Route::put('stock-entries/{stock}/cancel-stock', [App\Http\Controllers\StockIn\StockInHeaderController::class, 'cancel']);
     });
 });

@@ -76,6 +76,7 @@ class StockInDetailController extends Controller
             'quantity' => $request->quantity,
             'buy_price' => $request->buy_price,
             'note' => $request->note,
+            'status' => 'NEW',
             'created_by' => auth()->user()->fullname
         ]);
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\StockIn;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductUnits;
+use App\Models\StockIn\StockInDetail;
 use App\Models\StockIn\StockInHeader;
 use App\Models\StockMovement;
 use Illuminate\Http\Request;
@@ -198,6 +199,82 @@ class StockInHeaderController extends Controller
                 'code'      => 500,
                 'status'    => false,
                 'message'   => 'Data stok masuk gagal diselesaikan.',
+            ], 500);
+        }
+    }
+
+    public function cancel(Request $request, StockInHeader $stock)
+    {
+        $request->validate([
+            'note' => ['required', 'string', 'max:255']
+        ]);
+
+        // Jika statusnya bukan success
+        if ($stock->status == 'CANCEL') {
+            return response()->json([
+                'code'      => 400,
+                'status'    => false,
+                'message'   => 'Stok Masuk tidak dapat dibatalkan.',
+            ], 400);
+        }
+
+        DB::beginTransaction();
+        try {
+            $stockProductLine = StockInDetail::with(['product', 'productUnit'])
+                ->where('stock_in_id', $stock->id)
+                ->get();
+
+            foreach ($stockProductLine as $productLine) {
+                // Ambil qty dan konversi ke stok dasar
+                $qty = $productLine->quantity;
+                $conversion = ProductUnits::find($productLine->product_unit_id)->conversion_to_base;
+                $restoreQty = $qty * $conversion;
+
+                // Ambil produk
+                $product = Product::find($productLine->product_id);
+
+                // Kembalikan ke base stock
+                $product->base_stock -= $restoreQty;
+                $product->save();
+
+                // Update note pada detail penjualan
+                $productLine->note = $request->note;
+                $productLine->updated_by = auth()->user()->fullname;
+                $productLine->status = 'CANCEL';
+                $productLine->save();
+
+                // Catat ke stock movement
+                StockMovement::create([
+                    'product_id'     => $product->id,
+                    'movement_type'  => 'OUT', // Karena stok masuk kembali
+                    'qty_in'         => 0,
+                    'qty_out'        => $restoreQty,
+                    'remaining'      => $product->base_stock,
+                    'reference_type' => 'Cancel Stok Masuk Asal: ' . $stock->source,
+                    'note'           => $request->note ?? 'Pembatalan Stok Masuk',
+                    'created_by'     => auth()->user()->fullname,
+                ]);
+            }
+
+            // Update status penjualan
+            $stock->status = 'CANCEL';
+            $stock->updated_by = auth()->user()->fullname;
+            $stock->save();
+
+            DB::commit();
+
+            return response()->json([
+                'code'      => 200,
+                'status'    => true,
+                'message'   => 'Stok Masuk berhasil di cancel. Stok dikembalikan.',
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            Log::error($th);
+            return response()->json([
+                'code'      => 500,
+                'status'    => false,
+                'message'   => 'Gagal cancel stok masuk.',
             ], 500);
         }
     }

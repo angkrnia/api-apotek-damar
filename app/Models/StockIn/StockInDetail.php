@@ -19,6 +19,7 @@ class StockInDetail extends Model
         'quantity',
         'buy_price',
         'note',
+        'status',
         'created_by',
         'updated_by',
     ];
