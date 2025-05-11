@@ -140,6 +140,7 @@ class OpnameHeaderController extends Controller
             }
             // Jika produk line masih kosong
             if (count($opname->productsLines) == 0) {
+                DB::rollBack();
                 return response()->json([
                     'code'      => 400,
                     'status'    => false,
@@ -155,6 +156,7 @@ class OpnameHeaderController extends Controller
             foreach ($opname->productsLines as $line) {
                 // Cek apakah produk line memiliki transaksi?
                 if ($line->has_transaction) {
+                    DB::rollBack();
                     return response()->json([
                         'code'      => 400,
                         'status'    => false,
