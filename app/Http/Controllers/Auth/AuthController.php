@@ -65,7 +65,8 @@ class AuthController extends Controller
                 'data' => [
                     'token' => $token,
                     'refresh_token' => $refreshToken,
-                    'user' => $user
+                    'user' => $user,
+                    'app_name' => env('APP_NAME') ?? 'Apotek Damar',
                 ]
             ]);
         } catch (\Throwable $th) {
