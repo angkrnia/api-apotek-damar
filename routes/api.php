@@ -40,6 +40,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('groups-list', [App\Http\Controllers\HelperController::class, 'groupList']);
     Route::get('units-list', [App\Http\Controllers\HelperController::class, 'unitList']);
     Route::get('medicines-list', [App\Http\Controllers\HelperController::class, 'medicineList']);
+    Route::get('user-list', [App\Http\Controllers\HelperController::class, 'userList']);
     // KERANJANG
     Route::apiResource('carts', App\Http\Controllers\Sales\CartController::class);
     // CHECKOUT

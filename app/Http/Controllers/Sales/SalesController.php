@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Sale\SaleDetail;
 use App\Models\Sale\SaleHeader;
 use App\Models\StockMovement;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,11 +16,49 @@ class SalesController extends Controller
     public function index(Request $request)
     {
         $query = SaleHeader::query();
+        $items = null;
 
         // Jika ada search
         if (isset($request['search']) && !empty($request['search'])) {
             $textSearch =  $request['search'];
             $query->keywordSearch($textSearch);
+        }
+
+        // Jika ada start_date atau end_date
+        if (
+            (isset($request['start_date']) && !empty($request['start_date'])) ||
+            (isset($request['end_date']) && !empty($request['end_date']))
+        ) {
+            $start_date = Carbon::parse($request['start_date'])->startOfDay()->timezone('UTC');
+            $end_date = Carbon::parse($request['end_date'])->endOfDay()->timezone('UTC');
+
+            $query->whereBetween('created_at', [$start_date, $end_date]);
+
+            $items = $query->get();
+        }
+
+        // Jika ada cashier
+        if (isset($request['cashier']) && !empty($request['cashier'])) {
+            $cashier = $request['cashier'];
+            $query->where('cashier_id', $cashier);
+
+            $items = $query->get();
+        }
+
+        // Jika ada payment_method
+        if (isset($request['payment_method']) && !empty($request['payment_method'])) {
+            $payment_method = $request['payment_method'];
+            $query->where('payment_method', $payment_method);
+
+            $items = $query->get();
+        }
+
+        // Jika ada payment_status
+        if (isset($request['payment_status']) && !empty($request['payment_status'])) {
+            $payment_status = $request['payment_status'];
+            $query->where('status', $payment_status);
+
+            $items = $query->get();
         }
 
         $query->orderBy('created_at', 'desc');
@@ -31,10 +70,19 @@ class SalesController extends Controller
             $result = $query->get();
         }
 
+        $summary = [
+            'total_transaction' => $items ? $items->count() : 0,
+            'total_amount'      => $items ? $items->sum('grand_total') : 0,
+            'total_products'    => $items ? $items->sum('total_products') : 0,
+        ];
+
+        $response = $result->toArray();
+        $response['summary'] = $summary;
+
         return response()->json([
-            'code'      => 200,
-            'status'    => true,
-            'data'      => $result
+            'code' => 200,
+            'status' => true,
+            'data' => $response
         ]);
     }
 

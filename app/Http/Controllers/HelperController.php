@@ -9,6 +9,7 @@ use App\Models\ProductUnits;
 use App\Models\Sale\SaleHeader;
 use App\Models\StockMovement;
 use App\Models\Unit;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -104,6 +105,15 @@ class HelperController extends Controller
             'code'      => 200,
             'status'    => true,
             'data'      => $sale
+        ]);
+    }
+
+    public function userList()
+    {
+        return response()->json([
+            'code'      => 200,
+            'status'    => true,
+            'data'      => User::all()
         ]);
     }
 }

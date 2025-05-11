@@ -32,6 +32,15 @@ class SaleHeader extends Model
         'change' => 'float',
     ];
 
+    protected $appends = [
+        'total_products',
+    ];
+
+    public function getTotalProductsAttribute()
+    {
+        return $this->productsLines()->count();
+    }
+
     // Event untuk generate nomor transaksi sebelum insert ke database
     protected static function boot()
     {
