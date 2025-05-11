@@ -74,7 +74,27 @@ class ChartController extends Controller
             ->count();
 
         // Hitung harga modal semua produk
-        $totalProductCost = Product::where('is_active', 1)->sum('purchase_price');
+        $totalProductCost = Product::where('is_active', 1)
+            ->selectRaw('SUM(purchase_price * base_stock) as total_cost')
+            ->value('total_cost');
+        // Hitung assets harga jual semua produk saat ini
+        $potentialOmzet = DB::table('product_units as pu')
+            ->join('products as p', 'pu.product_id', '=', 'p.id')
+            ->where('p.is_active', 1)
+            ->selectRaw('
+        SUM(
+            CASE 
+                WHEN pu.is_base = 1 THEN 
+                    CASE
+                        WHEN pu.new_price IS NOT NULL THEN pu.new_price * p.base_stock
+                        ELSE pu.sell_price * p.base_stock
+                    END
+                ELSE 0
+            END
+        ) AS total_assets
+    ')
+            ->value('total_assets');
+        $potentialProfit = $potentialOmzet - $totalProductCost;
 
         return response()->json([
             'code' => 200,
@@ -85,6 +105,8 @@ class ChartController extends Controller
                 'total_out_of_stock_products' => intval($totalOutOfStockProducts), // Jumlah produk yang stoknya habis
                 'total_critical_stock_products' => intval($totalCriticalStockProducts), // Jumlah produk dengan stok kritis
                 'total_product_cost' => $totalProductCost, // Total harga modal semua produk
+                'total_potential_omzet' => $potentialOmzet,
+                'total_potential_profit' => $potentialProfit
             ]
         ]);
     }
