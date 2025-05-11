@@ -91,25 +91,53 @@ class ChartController extends Controller
 
     public function getTransactionDateByDate(Request $request)
     {
+        $startDate = Carbon::now()->subDays(15)->startOfDay();
+        $endDate = Carbon::now()->endOfDay();
+
+        $transactions = SaleHeader::where('status', 'SUCCESS')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->with(['productsLines' => function ($query) {
+                $query->select('sale_id', 'product_unit_price', 'product_unit_cost', 'quantity');
+            }])
+            ->get()
+            ->groupBy(function ($sale) {
+                return Carbon::parse($sale->created_at)->format('d M y');
+            })
+            ->map(function ($salesOnSameDate) {
+                $totalSales = $salesOnSameDate->sum('grand_total');
+                $totalCost = $salesOnSameDate->flatMap(function ($sale) {
+                    return $sale->productsLines;
+                })->sum(function ($line) {
+                    return $line->product_unit_cost * $line->quantity;
+                });
+                $totalProfit = $salesOnSameDate->flatMap(function ($sale) {
+                    return $sale->productsLines;
+                })->sum(function ($line) {
+                    return ($line->product_unit_price - $line->product_unit_cost) * $line->quantity;
+                });
+
+                return [
+                    'date' => $salesOnSameDate->first()->created_at->format('d M y'),
+                    'total' => $salesOnSameDate->count(),
+                    'total_sales' => $totalSales,
+                    'total_cost' => $totalCost,
+                    'total_profit' => $totalProfit
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $transactions
+        ]);
+
+        return;
+
         $dates = collect();
         for ($i = 14; $i >= 0; $i--) {
             $dates->push(now()->subDays($i)->format('Y-m-d'));
         }
 
-        // Ambil data dari model Sales dan SalesProductLine
-        // $data = SaleHeader::where('status', 'SUCCESS')->select(
-        //     DB::raw('DATE(sales.created_at) as date'),
-        //     DB::raw('COUNT(*) as total'),
-        //     DB::raw('SUM(sales.grand_total) as total_sales'),
-        //     DB::raw('SUM(sales_product_line.product_unit_cost * sales_product_line.quantity) as total_cost'), // Total harga modal
-        //     DB::raw('SUM(sales.grand_total - (sales_product_line.product_unit_cost * sales_product_line.quantity)) as total_profit') // Menghitung total keuntungan
-        // )
-        //     ->join('sales_product_line', 'sales_product_line.sale_id', '=', 'sales.id') // Gabungkan dengan sales_product_line berdasarkan sale_id
-        //     ->where('sales.created_at', '>=', now()->subDays(30))
-        //     ->groupBy(DB::raw('DATE(sales.created_at)'))
-        //     ->orderBy(DB::raw('DATE(sales.created_at)', 'asc'))
-        //     ->get()
-        //     ->keyBy('date');
         $data = SaleHeader::from('sales as sales')
             ->join('sales_product_line', 'sales_product_line.sale_id', '=', 'sales.id')
             ->where('sales.status', 'SUCCESS')
@@ -141,11 +169,11 @@ class ChartController extends Controller
         });
 
         // Return response sebagai JSON
-        return response()->json([
-            'code' => 200,
-            'status' => true,
-            'data' => $history,
-        ]);
+        // return response()->json([
+        //     'code' => 200,
+        //     'status' => true,
+        //     'data' => $history,
+        // ]);
     }
 
     public function getSalesSummary(Request $request)
@@ -189,6 +217,7 @@ class ChartController extends Controller
         $totalBuyQuantity = SaleDetail::whereIn('sale_id', $saleIds)->sum('quantity');
 
         $data = (object) [
+            'total_sales' => (float) $totalSales,
             'total_profit' => (float) $totalSales - (float) $totalCost,
             'total_buy_price' => (float) $totalBuyPrice,
             'total_buy_product' => (int) $totalBuyProducts,
