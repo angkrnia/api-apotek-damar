@@ -113,8 +113,8 @@ class ChartController extends Controller
 
     public function getTransactionDateByDate(Request $request)
     {
-        $startDate = Carbon::now()->subDays(15)->startOfDay();
-        $endDate = Carbon::now()->endOfDay();
+        $startDate = Carbon::now('Asia/Jakarta')->subDays(15)->startOfDay()->timezone('UTC');
+        $endDate = Carbon::now('Asia/Jakarta')->endOfDay()->timezone('UTC');
 
         $transactions = SaleHeader::where('status', 'SUCCESS')
             ->whereBetween('created_at', [$startDate, $endDate])
@@ -123,7 +123,7 @@ class ChartController extends Controller
             }])
             ->get()
             ->groupBy(function ($sale) {
-                return Carbon::parse($sale->created_at)->format('d M y');
+                return Carbon::parse($sale->created_at)->setTimezone('Asia/Jakarta')->format('d M y');
             })
             ->map(function ($salesOnSameDate) {
                 $totalSales = $salesOnSameDate->sum('grand_total');
@@ -139,7 +139,7 @@ class ChartController extends Controller
                 });
 
                 return [
-                    'date' => $salesOnSameDate->first()->created_at->format('d M y'),
+                    'date' => $salesOnSameDate->first()->created_at->timezone('Asia/Jakarta')->format('d M y'),
                     'total' => $salesOnSameDate->count(),
                     'total_sales' => $totalSales,
                     'total_cost' => $totalCost,
@@ -148,9 +148,28 @@ class ChartController extends Controller
             })
             ->values();
 
+        // Generate tanggal lengkap (Asia/Jakarta)
+        $dates = collect();
+        $today = Carbon::now('Asia/Jakarta')->startOfDay();
+        for ($i = 0; $i <= 15; $i++) {
+            $dates->push($today->copy()->subDays(15 - $i)->format('d M y'));
+        }
+
+        // Gabungkan transaksi dengan tanggal lengkap
+        $filledData = $dates->map(function ($date) use ($transactions) {
+            $data = $transactions->firstWhere('date', $date);
+            return $data ?? [
+                'date' => $date,
+                'total' => 0,
+                'total_sales' => 0,
+                'total_cost' => 0,
+                'total_profit' => 0
+            ];
+        });
+
         return response()->json([
             'status' => 'success',
-            'data' => $transactions
+            'data' => $filledData
         ]);
 
         return;
