@@ -29,8 +29,8 @@ class SalesController extends Controller
             (isset($request['start_date']) && !empty($request['start_date'])) ||
             (isset($request['end_date']) && !empty($request['end_date']))
         ) {
-            $start_date = Carbon::parse($request['start_date'])->startOfDay()->timezone('UTC');
-            $end_date = Carbon::parse($request['end_date'])->endOfDay()->timezone('UTC');
+            $start_date = Carbon::parse($request['start_date'], 'Asia/Jakarta')->startOfDay()->timezone('UTC');
+            $end_date = Carbon::parse($request['end_date'], 'Asia/Jakarta')->endOfDay()->timezone('UTC');
 
             $query->whereBetween('created_at', [$start_date, $end_date]);
 
