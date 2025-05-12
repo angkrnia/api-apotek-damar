@@ -34,7 +34,7 @@ class SalesController extends Controller
 
             $query->whereBetween('created_at', [$start_date, $end_date]);
 
-            $items = $query->get();
+            $items = $query->where('status', 'SUCCESS')->get();
         }
 
         // Jika ada cashier
@@ -42,7 +42,7 @@ class SalesController extends Controller
             $cashier = $request['cashier'];
             $query->where('cashier_id', $cashier);
 
-            $items = $query->get();
+            $items = $query->where('status', 'SUCCESS')->get();
         }
 
         // Jika ada payment_method
@@ -50,7 +50,7 @@ class SalesController extends Controller
             $payment_method = $request['payment_method'];
             $query->where('payment_method', $payment_method);
 
-            $items = $query->get();
+            $items = $query->where('status', 'SUCCESS')->get();
         }
 
         // Jika ada payment_status
@@ -58,7 +58,7 @@ class SalesController extends Controller
             $payment_status = $request['payment_status'];
             $query->where('status', $payment_status);
 
-            $items = $query->get();
+            $items = $query->where('status', 'SUCCESS')->get();
         }
 
         $query->orderBy('created_at', 'desc');
