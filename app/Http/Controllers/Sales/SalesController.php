@@ -34,7 +34,7 @@ class SalesController extends Controller
 
             $query->whereBetween('created_at', [$start_date, $end_date]);
 
-            $items = $query->where('status', 'SUCCESS')->get();
+            // $items = $query->where('status', 'SUCCESS')->get();
         }
 
         // Jika ada cashier
@@ -42,7 +42,7 @@ class SalesController extends Controller
             $cashier = $request['cashier'];
             $query->where('cashier_id', $cashier);
 
-            $items = $query->where('status', 'SUCCESS')->get();
+            // $items = $query->where('status', 'SUCCESS')->get();
         }
 
         // Jika ada payment_method
@@ -50,7 +50,7 @@ class SalesController extends Controller
             $payment_method = $request['payment_method'];
             $query->where('payment_method', $payment_method);
 
-            $items = $query->where('status', 'SUCCESS')->get();
+            // $items = $query->where('status', 'SUCCESS')->get();
         }
 
         // Jika ada payment_status
@@ -58,7 +58,7 @@ class SalesController extends Controller
             $payment_status = $request['payment_status'];
             $query->where('status', $payment_status);
 
-            $items = $query->where('status', 'SUCCESS')->get();
+            // $items = $query->where('status', 'SUCCESS')->get();
         }
 
         $query->orderBy('created_at', 'desc');
@@ -71,9 +71,9 @@ class SalesController extends Controller
         }
 
         $summary = [
-            'total_transaction' => $items ? $items->count() : 0,
-            'total_amount'      => $items ? $items->sum('grand_total') : 0,
-            'total_products'    => $items ? $items->sum('total_products') : 0,
+            'total_transaction' => $query ? $query->count() : 0,
+            'total_amount'      => $query ? $query->where('status', 'SUCCESS')->sum('grand_total') : 0,
+            'total_products'    => $query ? $query->where('status', 'SUCCESS')->get()->sum('total_products') : 0,
         ];
 
         $response = $result->toArray();
