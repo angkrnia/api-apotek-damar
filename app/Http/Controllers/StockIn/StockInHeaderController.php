@@ -152,6 +152,23 @@ class StockInHeaderController extends Controller
             ]);
 
             foreach ($stock->productsLines as $line) {
+                // Cek apakah harga beli produk line berbeda?
+                if ($line->buy_price_diff) {
+                    // DB::rollBack();
+                    $productUnit = ProductUnits::find($line->product_unit_id);
+                    if (!$productUnit) {
+                        continue; // Skip jika product unit tidak ditemukan
+                    }
+                    $newPrice = $productUnit->new_price;
+                    if ($line->last_sell_price == $newPrice) {
+                        // return response()->json([
+                        //     'code'      => 400,
+                        //     'status'    => false,
+                        //     'message'   => 'Produk ' . $line->product->name . ' belum update harga jual.',
+                        // ], 400);
+                    }
+                }
+
                 // Update stock produknya
                 $product = Product::find($line->product_id);
                 if (!$product) {

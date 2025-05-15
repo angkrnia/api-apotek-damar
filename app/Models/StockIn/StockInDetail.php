@@ -20,6 +20,8 @@ class StockInDetail extends Model
         'buy_price',
         'note',
         'status',
+        'last_buy_price',
+        'last_sell_price',
         'created_by',
         'updated_by',
     ];
@@ -27,6 +29,34 @@ class StockInDetail extends Model
         'quantity' => 'integer',
         'buy_price' => 'decimal:2',
     ];
+    protected $appends = ['buy_price_diff', 'buy_price_direction'];
+
+    public function getBuyPriceDiffAttribute()
+    {
+        $productPrice = optional($this->product)->purchase_price;
+
+        if (is_null($productPrice)) {
+            return false;
+        }
+
+        return bccomp($this->buy_price, $productPrice, 2) !== 0;
+    }
+
+    public function getBuyPriceDirectionAttribute()
+    {
+        $productPrice = optional($this->product)->purchase_price;
+
+        if (is_null($productPrice)) {
+            return null;
+        }
+
+        return match (bccomp($this->buy_price, $productPrice, 2)) {
+            1 => 'UP',    // buy_price lebih tinggi dari purchase_price
+            -1 => 'DOWN',  // buy_price lebih rendah dari purchase_price
+            0 => null,   // sama
+            default => null,
+        };
+    }
 
     public function scopeKeywordSearch(Builder $query, string $searchKeyword): Builder
     {
@@ -48,7 +78,7 @@ class StockInDetail extends Model
 
     public function product()
     {
-        return $this->belongsTo(Product::class, 'product_id')->select('id', 'name', 'sku', 'base_stock');
+        return $this->belongsTo(Product::class, 'product_id')->select('id', 'name', 'sku', 'base_stock', 'purchase_price');
     }
 
     public function productUnit()
