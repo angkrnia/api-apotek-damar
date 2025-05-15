@@ -4,6 +4,7 @@ namespace App\Http\Controllers\StockIn;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\ProductUnits;
 use App\Models\StockIn\StockInDetail;
 use App\Models\StockIn\StockInHeader;
 use Illuminate\Http\Request;
@@ -69,6 +70,12 @@ class StockInDetailController extends Controller
             ], 400);
         }
 
+        $product = Product::find($request->product_id);
+        $productUnit = ProductUnits::find($request->product_unit_id);
+
+        $lastBuyPrice = optional($product)->purchase_price ?? 0;
+        $lastSellPrice = optional($productUnit)->new_price ?? 0;
+
         $stockDetail = StockInDetail::create([
             'stock_in_id' => $stock->id,
             'product_id' => $request->product_id,
@@ -77,6 +84,8 @@ class StockInDetailController extends Controller
             'buy_price' => $request->buy_price,
             'note' => $request->note,
             'status' => 'NEW',
+            'last_buy_price' => $lastBuyPrice,
+            'last_sell_price' => $lastSellPrice,
             'created_by' => auth()->user()->fullname
         ]);
 
