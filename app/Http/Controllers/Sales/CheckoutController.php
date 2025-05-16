@@ -71,7 +71,7 @@ class CheckoutController extends Controller
                     'product_name'        => $cart->product->name,
                     'product_sku'         => $cart->product->sku,
                     'product_unit'        => $productUnit->unit->name ?? '-',
-                    'product_unit_price'  => $productUnit->new_price ?? $cart->unit_price,
+                    'product_unit_price'  => $cart->unit_price,
                     'product_unit_cost'   => $cart->product->purchase_price * $productUnit->conversion_to_base,
                     'quantity'            => $cart->quantity,
                     'subtotal'            => $cart->subtotal,
