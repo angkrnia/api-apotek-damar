@@ -52,3 +52,16 @@ function verifySessionId(Request $request, string $sessionId): bool
 
     return false;
 }
+
+/**
+ * Convert a number to Indonesian Rupiah currency format.
+ *
+ * @param float|int $angka The number to be converted.
+ *
+ * @return string The formatted currency string in Rupiah.
+ */
+
+function convertRp($angka)
+{
+    return 'Rp ' . number_format($angka, 0, ',', '.');
+}

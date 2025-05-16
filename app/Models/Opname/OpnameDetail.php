@@ -60,6 +60,6 @@ class OpnameDetail extends Model
 
     public function product()
     {
-        return $this->belongsTo(Product::class, 'product_id')->select('id', 'name', 'sku', 'base_stock');
+        return $this->belongsTo(Product::class, 'product_id')->select('id', 'name', 'sku', 'base_stock', 'base_unit_id');
     }
 }
