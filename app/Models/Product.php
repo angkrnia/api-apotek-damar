@@ -87,6 +87,12 @@ class Product extends Model
             ->orderByPivot('created_at', 'asc');
     }
 
+    // Base unit id
+    public function baseUnit()
+    {
+        return $this->belongsTo(Unit::class, 'base_unit_id');
+    }
+
     protected static function boot()
     {
         parent::boot();

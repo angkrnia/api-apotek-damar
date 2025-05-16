@@ -62,4 +62,8 @@ Route::middleware(['auth:api'])->group(function () {
         Route::put('sales/{sale}/cancel', [App\Http\Controllers\Sales\SalesController::class, 'cancel']);
         Route::put('stock-entries/{stock}/cancel-stock', [App\Http\Controllers\StockIn\StockInHeaderController::class, 'cancel']);
     });
+    // REPORT
+    Route::get('report/download/stock-opname/{opname}', [App\Http\Controllers\ReportController::class, 'stockOpnameDetail']);
+    Route::get('report/download/stock-in/{stockIn}', [App\Http\Controllers\ReportController::class, 'stockEntryDetail']);
+    Route::get('report/download/products', [App\Http\Controllers\ReportController::class, 'allProducts']);
 });
