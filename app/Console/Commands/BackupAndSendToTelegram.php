@@ -33,6 +33,7 @@ class BackupAndSendToTelegram extends Command
 
         // Tambah redirect error ke output supaya mudah debug
         exec($dumpCommand . ' 2>&1', $output, $resultCode);
+        Log::info($output, ['OUPUT']);
 
         if ($resultCode !== 0) {
             $endDuration = executionTime($startDuration);
