@@ -15,7 +15,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('backup:db')
-            ->everyMinute()
+            ->hourly()
             ->when(function () {
                 $hourUtc = (int) now()->format('H'); // jam UTC
 
