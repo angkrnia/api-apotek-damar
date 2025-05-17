@@ -22,6 +22,11 @@ class Kernel extends ConsoleKernel
                 // cek jam UTC antara 1 sampai 16
                 return $hourUtc >= 1 && $hourUtc <= 16;
             });
+
+        // Report harian setiap jam 10 malam jam jakarta
+        $schedule->command('report:apotekdamar')
+            ->dailyAt('22:00')
+            ->timezone('Asia/Jakarta');
     }
 
     /**
@@ -29,7 +34,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands(): void
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }
