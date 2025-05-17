@@ -53,14 +53,15 @@ class AutoCheckBestSeller extends Command
             ->whereBetween('header.created_at', [$rangeStart, $now])
             ->groupBy('name')
             ->orderByDesc('total_quantity')
+            ->orderByDesc('total_sales')
             ->limit(10)
             ->get();
 
         if ($products->isEmpty()) {
-            return "<strong>🩺 Obat Paling Laku ({$label})</strong>\nTidak ada data.\n";
+            return "<b>🩺 Obat Paling Laku ({$label})</b>\nTidak ada data.\n\n";
         }
 
-        $message = "<strong>🩺 Obat Paling Laku ({$label})</strong>\n";
+        $message = "<b>🩺 Obat Paling Laku ({$label})</b>\n\n";
 
         foreach ($products as $product) {
             $profit = $product->total_sales - $product->total_cost;
