@@ -22,13 +22,14 @@ class BackupAndSendToTelegram extends Command
         $database = env('DB_DATABASE', 'apotek_damar');
         $startDuration = microtime(true);
 
-        $fileName = $database . '_' . now()->setTimezone('Asia/Jakarta')->format('Y_m_d_H_i_s') . '.sql';
+        $fileName = $database . '_' . now()->setTimezone('Asia/Jakarta')->format('Y_m_d_H_i_s') . '.sql.gz';
         $localPath = storage_path("app/{$fileName}");
 
         // === Dump dari remote database ===
         $passwordPart = $password === '' ? '' : "-p{$password}";
+        $ignoreTable = "{$database}.log_request";
 
-        $dumpCommand = "mysqldump -h {$host} -P {$port} -u{$username} {$passwordPart} {$database} > \"{$localPath}\"";
+        $dumpCommand = "mysqldump -h {$host} -P {$port} -u{$username} {$passwordPart} {$database} --ignore-table={$ignoreTable} | gzip > \"{$localPath}\"";
 
         // Tambah redirect error ke output supaya mudah debug
         exec($dumpCommand . ' 2>&1', $output, $resultCode);
