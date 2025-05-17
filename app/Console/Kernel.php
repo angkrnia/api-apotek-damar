@@ -25,6 +25,7 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('stock:check')->dailyAt('16:59');
         $schedule->command('check:bestseller')->dailyAt('16:59');
+        $schedule->command('report:apotekdamar')->dailyAt('16:59');
     }
 
     /**
