@@ -4,6 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
@@ -13,6 +14,14 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // $schedule->command('inspire')->hourly();
+        $schedule->command('backup:db')
+            ->hourly()
+            ->when(function () {
+                $hourUtc = (int) now()->format('H'); // jam UTC
+
+                // cek jam UTC antara 1 sampai 16
+                return $hourUtc >= 1 && $hourUtc <= 16;
+            });
     }
 
     /**

@@ -5,38 +5,48 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class BackupAndSendToTelegram extends Command
 {
-    protected $signature = 'backup:telegram';
+    protected $signature = 'backup:db';
     protected $description = 'Backup DB dari server lain dan kirim ke Telegram';
 
     public function handle()
     {
         // === Konfigurasi ===
-        $host = 'remote-db-host.com';
+        $host = env('DB_HOST', 'localhost');
         $port = 3306;
-        $username = 'db_user';
-        $password = 'db_password';
-        $database = 'your_db_name';
+        $username = env('DB_USERNAME', 'root');
+        $password = env('DB_PASSWORD', '');
+        $database = env('DB_DATABASE', 'apotek_damar');
+        $startDuration = microtime(true);
 
-        $fileName = 'backup_' . now()->format('Y_m_d_H_i_s') . '.sql';
+        $fileName = $database . '_' . now()->format('Y_m_d_H_i_s') . '.sql';
         $localPath = storage_path("app/{$fileName}");
 
         // === Dump dari remote database ===
-        $dumpCommand = "mysqldump -h {$host} -P {$port} -u{$username} -p'{$password}' {$database} > {$localPath}";
-        exec($dumpCommand, $output, $resultCode);
+        $passwordPart = $password === '' ? '' : "-p{$password}";
+
+        $dumpCommand = "mysqldump -h {$host} -P {$port} -u{$username} {$passwordPart} {$database} > \"{$localPath}\"";
+
+        // Tambah redirect error ke output supaya mudah debug
+        exec($dumpCommand . ' 2>&1', $output, $resultCode);
 
         if ($resultCode !== 0) {
-            $this->error("Backup gagal. Code: $resultCode");
+            $endDuration = executionTime($startDuration);
+            $this->info("Durasi: {$endDuration}");
+            insertLogCron("FAILED: Backup DB - Durasi: {$endDuration} - {$dumpCommand} - " . implode("\n", $output));
             return Command::FAILURE;
         }
 
         $this->info("Backup berhasil: {$fileName}");
 
         // === Kirim ke Telegram ===
-        $botToken = 'YOUR_TELEGRAM_BOT_TOKEN';
-        $chatId = 'YOUR_CHAT_ID'; // bisa berupa ID pribadi atau grup
+        $botToken = env('TELEGRAM_BOT_TOKEN');
+        $chatId = env('TELEGRAM_CHAT_ID');
+
+        $endDuration = executionTime($startDuration);
 
         try {
             $response = Http::attach(
@@ -45,7 +55,7 @@ class BackupAndSendToTelegram extends Command
                 $fileName
             )->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
                 'chat_id' => $chatId,
-                'caption' => '🗄️ Backup DB: ' . $fileName,
+                'caption' => "🗄️ Backup DB: {$fileName}\nDurasi: {$endDuration}"
             ]);
 
             if ($response->successful()) {
@@ -57,9 +67,9 @@ class BackupAndSendToTelegram extends Command
             $this->error("Error: " . $e->getMessage());
         }
 
-        // (Optional) hapus file setelah upload
-        unlink($localPath);
-
+        $endDuration = executionTime($startDuration);
+        $this->info("Durasi: {$endDuration}");
+        insertLogCron("Backup DB: {$fileName} - Durasi: {$endDuration}");
         return Command::SUCCESS;
     }
 }

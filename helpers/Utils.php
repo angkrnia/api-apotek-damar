@@ -65,3 +65,49 @@ function convertRp($angka)
 {
     return 'Rp ' . number_format($angka, 0, ',', '.');
 }
+
+/**
+ * Calculate the execution time of a given code block.
+ *
+ * @param float $startTime The microtime(true) value when the execution started.
+ *
+ * @return string The duration of the execution in seconds, rounded to 2 decimal places.
+ */
+function executionTime(float $startTime): string
+{
+    $endTime = microtime(true);
+    $duration = (int) round($endTime - $startTime);
+
+    $days = floor($duration / 86400);
+    $hours = floor(($duration % 86400) / 3600);
+    $minutes = floor(($duration % 3600) / 60);
+    $seconds = $duration % 60;
+
+    $parts = [];
+
+    if ($days > 0) {
+        $parts[] = "$days hari";
+    }
+    if ($hours > 0) {
+        $parts[] = "$hours jam";
+    }
+    if ($minutes > 0) {
+        $parts[] = "$minutes menit";
+    }
+    if ($seconds > 0 || empty($parts)) {
+        $parts[] = "$seconds detik";
+    }
+
+    return implode(' ', $parts);
+}
+
+function insertLogCron(string $message)
+{
+    $timestamp = now()->format('Y-m-d H:i:s');
+    $date = now()->format('Y_m_d');
+    $logFile = storage_path("logs/cron_{$date}.log");
+
+    $logMessage = "[{$timestamp}] {$message}\n";
+
+    file_put_contents($logFile, $logMessage, FILE_APPEND);
+}
