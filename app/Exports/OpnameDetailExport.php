@@ -3,7 +3,6 @@
 namespace App\Exports;
 
 use App\Models\Opname\OpnameDetail;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
