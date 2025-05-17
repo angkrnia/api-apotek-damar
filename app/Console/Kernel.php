@@ -22,6 +22,9 @@ class Kernel extends ConsoleKernel
                 // cek jam UTC antara 1 sampai 16
                 return $hourUtc >= 1 && $hourUtc <= 16;
             });
+
+        $schedule->command('stock:check')->dailyAt('16:59');
+        $schedule->command('check:bestseller')->dailyAt('16:59');
     }
 
     /**
