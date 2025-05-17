@@ -22,7 +22,7 @@ class BackupAndSendToTelegram extends Command
         $database = env('DB_DATABASE', 'apotek_damar');
         $startDuration = microtime(true);
 
-        $fileName = $database . '_' . now()->format('Y_m_d_H_i_s') . '.sql';
+        $fileName = $database . '_' . now()->setTimezone('Asia/Jakarta')->format('Y_m_d_H_i_s') . '.sql';
         $localPath = storage_path("app/{$fileName}");
 
         // === Dump dari remote database ===

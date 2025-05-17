@@ -103,8 +103,8 @@ function executionTime(float $startTime): string
 
 function insertLogCron(string $message)
 {
-    $timestamp = now()->format('Y-m-d H:i:s');
-    $date = now()->format('Y_m_d');
+    $timestamp = now()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+    $date = now()->setTimezone('Asia/Jakarta')->format('Y_m_d');
     $logFile = storage_path("logs/cron_{$date}.log");
 
     $logMessage = "[{$timestamp}] {$message}\n";
